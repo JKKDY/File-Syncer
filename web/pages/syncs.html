@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+
+<html> 
+    
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            
+        <link rel="stylesheet" type="text/css" href="/styles/style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
+        <script src="https://kit.fontawesome.com/74ce534e54.js" crossorigin="anonymous"></script>
+        
+        <script type="text/javascript" src="/eel.js"></script>
+        <script type="text/javascript" src="/js/main.js"></script>
+
+        <title> File Syncer </title>   
+    </head>
+
+
+    <body>
+        <!-- Navbar -->
+        <div class="grid">
+            <nav>
+                <a href="/index.html" title="Home">                     
+                    <i class="fas fa-home"> </i> 
+                </a>
+                <a href="/pages/connections.html" title="Connections">              
+                    <i class="fas fa-network-wired"></i> 
+                </a>
+                <a href="/pages/syncs.html" title="Syncs" class="active">              
+                    <i class="fas fa-sync"></i>
+                    <div class="indicator"></div> 
+                </a>
+                <a href="/pages/directories.html" title="Directories">              
+                    <i class="far fa-hdd"></i> 
+                </a>
+                <a href="/pages/logs.html" title="Logs">                            
+                    <i class="far fa-copy"></i> 
+                </a>
+                <a href="/pages/settings.html", title="Settings" class="settingsCog">  
+                    <i class="fas fa-cog"></i> 
+                </a>
+            </nav>
+    
+    
+            <div id="topbar">
+            </div>
+
+
+
+            <main id="Syncs">
+                <div class="connections_list">
+                    <div class="selector_title">Connections</div>
+                    <div class="selector" id="conn_list"></div>
+                </div>
+
+                <div class="right_side"> 
+                    <div class="properties field">
+                        <div class="field_title">Connection Properties</div>
+                        <div class="field_scrollbar">                        
+                            <table id="props_list"></table>
+                        </div>
+                    </div>
+
+                    <div class="directories field">
+                        <div class="field_title">Tracked Directories</div>
+                        <ul id="dir_list", class="field_scrollbar"> </ul>
+                    </div>
+                    
+                    <div class="syncs field">
+                        <div class="field_title">Syncs</div>
+                        <div id="syncs_list", class="field_scrollbar"> </div>
+                    </div>
+
+                </div>
+
+            </main>
+
+
+        </div>
+    
+    </body>
+
+</html>

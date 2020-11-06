@@ -1,0 +1,391 @@
+$header_font_size: 22px;
+$header_height: 30px;
+$header_bottom_spacing:  2.5vh;
+$abs_padding: 3vw;
+$overflow_padding: 7px; 
+
+#Connections{
+    display: grid;
+    grid-template-columns: 60% 40%;
+    .fa-check-circle{color:$accent_color1;}
+    .fa-signal{color:$accent_color1;}
+    .fa-times-circle{color:$color_negative;}
+    .fa-spinner{ color: $accent_color1; }
+}
+
+
+
+
+
+// ##################
+//     SELECTIONS
+// ##################
+
+.selections{
+    display: grid;
+    grid-template-columns: $abs_padding 1fr $abs_padding;
+    grid-template-rows: minmax(1em,2.5em) minmax(auto, 60%) 5vh minmax(auto, 50%) minmax(1em,2.5em);
+    min-width: 0;
+    min-height: 0;
+
+    div{
+        min-width: 0;
+        min-height: 0;
+    }
+}
+
+
+.selection{
+    display: grid;
+    grid-template-columns:auto;
+    grid-template-rows: auto 1fr;
+
+    .selection_header{
+        margin-left: $overflow_padding + 3px;
+        margin-right: $overflow_padding;
+        font-size: $header_font_size;
+        font-weight: 500;
+        height: $header_height;
+        display: flex;
+        align-items: center;
+        .title{ margin-right: auto; }
+        padding-bottom: 0.7vh;
+        margin-bottom: 1vh;
+        border-bottom: 2px solid $secondary_color;
+    }
+    .search_form{
+        overflow: hidden;
+    }
+    
+    .selection_table{
+        display: grid;
+        width: calc(100% + 3px);
+        grid-auto-rows: minmax(40px, max-content);
+        overflow-y: scroll;
+        font-size: 14px;
+    }
+
+    .tb_row{
+        padding-left: $overflow_padding + 3px;
+        padding-right: $overflow_padding;
+        width: 1fr;
+        margin: 0;
+        height: 98%;
+        border-radius: 9px;
+        cursor: pointer;
+        transition: all 0.23s ease 0s;
+        &:hover{
+            background-color: $secondary_color;
+            .tb_btn{ background-color: $secondary_color;}
+        }
+    }
+
+    .tb_content{
+        height: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1.3fr auto auto;
+        align-items: center;
+    }
+
+    .tb_btn{
+        font-size: 16px;
+        padding-left: 3vh;
+        transition: all 0.23s ease 0s;
+        color: $font_color2;
+    }
+    .nt_btn{
+        &:hover{ color: $accent_color1;}
+    }
+    .delete_btn{
+        &:hover{ color: $color_negative;}
+    }
+
+    .tb_status{
+        i{ padding-right: 5px; }
+        span{
+            color: $font_color2;
+            padding-left: 1.5vw;
+        }
+    }
+
+    .active{
+        background-color: $secondary_color;
+        color: $accent_color1;
+        button {
+
+            background-color: $secondary_color;
+            color: $font_color1;
+        }
+    }
+}
+
+#connections_selection{
+    grid-row: 2;
+    grid-column: 2;
+    .connections_header{
+        #search_connections input{
+            width: 170px;
+        }
+        .circle_btn.plus{
+            height: $header_font_size + 2px;
+            width: $header_font_size + 2px;
+            margin-left: 0px;
+        }
+    }
+}
+
+#requests_selection{
+    grid-row: 4;
+    grid-column: 2;
+}
+
+
+
+
+
+
+
+// ##################
+//        INFO
+// ##################
+.connection_info{
+    box-shadow: 0px 0px 10px 3px rgba(0,0,0,0.15);
+    min-width: 0;
+    min-height: 0;
+    overflow-y: scroll;
+    
+    .connection_info_grid{
+        min-width: 0;
+        min-height: 0;
+        padding: 0 4vw;
+        display: none;
+        grid-template-rows: 5vh auto auto 8vh auto 8vh auto 8vh auto 8vh auto 1fr;
+        align-items: center;
+    }
+
+    .spacer{
+        height: 3px;
+        width: 100%;
+        background: $secondary_color;
+    }
+    .title{
+        font-size: 17px;
+        font-weight: 500;
+        align-content: center;
+        .icon{
+            padding-right: 10px;
+            font-size: 15px;
+        }
+        button{
+            color: $font_color2;
+            float: right;
+            width: auto;
+            justify-content: right;
+            align-content: center;
+            font-size: 15px;
+            padding:0;
+            padding-top: 1px;
+            padding-right: 5px;
+        }
+        button:hover{
+            color: $accent_color1;
+        }
+    }
+    .list{
+        font-size: 15px;
+        padding-top: 2vh;
+        display: grid;
+        grid-template-columns: 100%;
+        row-gap: 1.8vh;
+        justify-items: left;
+        color: $font-color2;
+    }
+    
+
+
+
+    #status_field{
+        color: $font_color2;
+        span{padding-right: auto;}
+        button{float: right;}
+        i{padding-right: 10px;}
+    }
+
+    #name_field{
+        font-size: $header_font_size + 6px;
+        font-weight: 500;
+        padding-bottom: 2vh;
+        // align-self: end;
+        // padding-top: 2vh;
+    }
+
+    #properties_field{
+        .icon{color: $accent_color3;}
+        .table{
+            margin-top: 2vh;
+            width: 100%;
+            font-size: 14px;
+            display: grid;
+            grid-template-columns: 30% 70%;
+            grid-auto-rows: auto;
+            row-gap: 1.8vh;
+            font-weight: 500;
+        }
+
+        .key{
+            color: $font_color2;
+        }
+        .value{
+            justify-self: right;
+        }
+    }
+
+    #directories_field{
+        .icon{color: $accent_color3;}
+
+        .title button i{
+            padding-right: 3px;
+            padding-top: 1px;
+        }
+        // .title button:active{
+        //     transform:  scale(-1, 1);;
+        //     transition: all 0.23s ease 0s;
+        // }
+    }
+
+    #syncs_field{
+        .icon{color: $accent_color3;}
+
+        .title button i{
+            padding-right: 5px;
+            padding-top: 1px;
+        }
+        .sync{
+            width: 100%;
+            display: grid;
+            align-content: center;
+            grid-auto-rows: calc(auto + 20px);
+        }
+        .local_dir{
+            color: $font_color1;
+        }
+        .remote_dir{
+            padding: 0.5vh 0;
+            padding-left: 30px;
+            i{
+                font-size: 12px;
+                margin-left: -16px;
+                padding-right: 4px;
+            }
+        }
+    }
+}
+
+
+
+
+
+#delete_window{
+    font-size: 18px;
+    width: 300px;
+    height: 160px;
+    padding: 25px 20px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto 1fr 40px;
+    align-content: center;
+    justify-items: center;
+    border-radius: 10px;
+
+    span{
+        grid-column: 1/3;
+        text-align: center;
+    }
+
+    #msg{line-height: 1.5em;}
+    #del_window_name{ padding-left: 0px;}
+
+    #warning{
+        font-size: 14px;
+        color: $font_color2;
+        align-self: end;
+        padding-bottom: 15px;
+    }
+
+    button{
+        border-radius: 10px;
+        background-color: $secondary_color;
+        width: 80%;
+        transition: all 0.1s ease 0s;
+    }
+
+    #delete_btn{
+        border: 1px solid $color_negative;
+        &:hover{
+            border: 2px solid $color_negative;
+            color: $color_negative
+        }
+    }
+
+    #cancel_btn{
+        border: 1px solid $accent_color1;
+        &:hover{
+            border: 2px solid $accent_color1;
+            color: $accent_color1;
+        }
+    }
+}
+
+
+#add_window{
+    padding: 25px 50px;
+    height: 250px;
+    width: 350px;
+    border-radius:  15px;
+    grid-template-rows: auto 1fr 40px;
+
+    .header{
+        font-size: 24px;
+        width: 100%;
+        border-bottom: 3px solid $secondary_color;
+        padding-bottom: 15px;
+    }
+
+    form{
+        padding: 15px 0px;
+        font-size: 16px;
+        display: grid;
+        grid-template-columns: min-content 1fr;
+        align-items: center;
+        label{
+            padding-right: 30px;
+        }
+        input{
+            background-color: $main_color;
+            font-size: 16px;
+            box-shadow: none;
+            border: none;
+            color: $font_color2;
+            padding: 0;
+            margin-bottom: -2px;
+            border-bottom: 2px solid $font_color3;
+        }
+        input:focus{
+            outline: none !important;
+        }
+    }
+
+    button{
+        border-radius: 10px;
+        background-color: $secondary_color;
+        color: $font_color2;
+        border: 1px solid $accent_color1;
+        width: 30%;
+        transition: all 0.1s ease 0s;
+        margin-left: 50% - 15%;
+        &:hover{
+            border: 2px solid $accent_color1;
+            color: $accent_color1;
+            font-weight: 500;
+        }
+    }
+}

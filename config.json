@@ -1,0 +1,11 @@
+{
+    "data_path": "data\\",
+    "logs_path":"logs\\",
+
+    "port":50000,
+    "ui_port":7000,
+
+    "default_ping_rate":10,
+    "default_sync_rate":60,
+    "default_connect_rate": 30
+}
