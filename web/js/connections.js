@@ -111,7 +111,7 @@ const info_display = new (class {
 
     async display(uuid){
         if (this.active === uuid) return
-        if (this.active !== "") connections[this.active].set_active(false)
+        if (this.active !== "" && connections[this.active] !== undefined) connections[this.active].set_active(false)
         connections[uuid].set_active(true)
         this.active=uuid
 

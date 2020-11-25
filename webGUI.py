@@ -3,6 +3,14 @@ from src.ui import UiFrontend, UI_Code
 
 
 
+def keys(d, ret = []):
+    for k,v in d.items():
+        if isinstance(v, dict): ret + keys(v, ret)
+        ret.append(k)
+    return ret
+
+
+
 
 @eel.expose
 def get_uuids(): return webgui.request(UI_Code.REQ_UUIDS) 
@@ -12,6 +20,12 @@ def get_uuid_name(uuid): return webgui.request(UI_Code.REQ_UUID_NAME, uuid)
 def get_uuid_info(uuid): return webgui.request(UI_Code.REQ_UUID_INFO, uuid)
 @eel.expose
 def get_uuid_status(uuid): return webgui.request(UI_Code.REQ_UUID_STATUS, uuid)  # https://stackoverflow.com/questions/2535055/check-if-remote-host-is-up-in-python
+@eel.expose
+def get_directories(): return webgui.request(UI_Code.REQ_DIRS)
+@eel.expose
+def get_dir_graph(dir_path): return webgui.request(UI_Code.REQ_DIR_GRAPH, dir_path)
+@eel.expose
+def get_ign_patters(dir_path): return webgui.request(UI_Code.REQ_DIR_IGN_PATTERS, dir_path)
 
 @eel.expose
 def add_connection(hostname, port, name): return webgui.request(UI_Code.ADD_CONNECTION, hostname, port, name)
@@ -20,8 +34,6 @@ def connect(uuid): return webgui.request(UI_Code.UUID_CONNECT, uuid)
 @eel.expose
 def disconnect(uuid): webgui.request(UI_Code.UUID_DISCONNECT, uuid)
 
-
-def foo():pass
 
 
 class WebGUI(UiFrontend):

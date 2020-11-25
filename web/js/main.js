@@ -1,10 +1,4 @@
 
-(async function(){
-    "use strict";   
-    // document.getElementById("overlay").onclick = overlay_off() 
-    overlay_off();
-})();
-
 
 function overlay_on(){
     document.getElementById("overlay").style.display = ""
@@ -23,3 +17,38 @@ function add_break_to_path(path){
 
 
 const sleep = ms => new Promise(res => setTimeout(res, ms));
+
+
+
+
+
+
+(async function(){
+    "use strict";   
+    // document.getElementById("overlay").onclick = overlay_off() 
+    overlay_off();
+
+    var storage = window.sessionStorage;
+    if(!storage.loaded){
+
+    }
+})();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

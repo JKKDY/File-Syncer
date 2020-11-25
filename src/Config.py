@@ -27,8 +27,7 @@ AUTO_CONNECT_KEY = "auto_connect"
 AUTO_SYNC_KEY = "auto_sync"
 BI_DIRECTIONAL_KEY = "bidirectional"
 
-GLOBAL_IGN_KEY = "global_ignore"
-LOCAL_IGN_KEY = "local_ignore"
+IGNORE_KEY = "ignore"
 HASH_KEY = "hash"
 
 SESS_START_KEY = "start"
@@ -177,20 +176,19 @@ class DirectoriesList(JSON_File):
     def __init__(self, path:Path):
         super().__init__(path)
     
-    def new_directory(self, path, name, glob_ign, loc_ign):
+    def new_directory(self, path, name, ignore_patterns):
         self[str(path)] = {
-            GLOBAL_IGN_KEY: glob_ign,
-            LOCAL_IGN_KEY: loc_ign,
+            IGNORE_KEY: ignore_patterns,
             HASH_KEY: hash_word(path),
             NICKNAME_KEY: name
         }
         
-    def update_ignore(self, path, glob_ign, loc_ign):
-        self[str(path)][GLOBAL_IGN_KEY] = glob_ign
-        self[str(path)][LOCAL_IGN_KEY] = loc_ign
+    def update(self, path, ignore_patterns, hash):
+        self[str(path)][IGNORE_KEY] = ignore_patterns
+        self[str(path)][HASH_KEY] = hash
         
-    def info(self):
-        return {str(path):_dir[NICKNAME_KEY] for path, _dir in self.items()}
+    def directories(self):
+        return {str(path):directory[NICKNAME_KEY] for path, directory in self.items()}
             
        
         

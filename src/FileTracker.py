@@ -9,7 +9,7 @@ from hashlib import sha1
 from pathlib import Path
 
 from src.utils import now, hash_word, rel_path, hash_file
-from src.Config import get_logger, DATE_TIME_FORMAT, DEFAULT_TIME, GLOBAL_IGN_KEY, LOCAL_IGN_KEY
+from src.Config import get_logger, DATE_TIME_FORMAT, DEFAULT_TIME, IGNORE_KEY
 
 
 logger_name, logger = get_logger(__name__)
@@ -48,6 +48,9 @@ class DirectoryElement:
     @property
     def exists(self) -> bool: return self._deleted == DEFAULT_TIME
     
+    @property
+    def name(self) -> str: return self.__repr__()
+    
     def __repr__(self):
         return self.full_path.name
     
@@ -74,7 +77,12 @@ class File(DirectoryElement):
             else: 
                 return self._created > time #? shouldnt it be self._deleted?
             
-            
+   
+   
+# Pröblem:
+# Update is slow with big directories
+# implement multithreading: on start one thread per directory
+# when updating check (sub) folder size and depth and use a dedicated thread if it reaches a certain threshold         
     
 class Folder(DirectoryElement):
     def __init__(self, rel_path:Path, dir_path:Path, in_ignore_fkt, update_on_creation=True):
@@ -180,15 +188,23 @@ class Folder(DirectoryElement):
                         else:
                             self.folders[folder].deleted()
                             
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "files":{str(path):file.name for path, file in self.files.items() if file.exists},
+            "folders":{str(path):folder.to_dict() for path, folder in self.folders.items() if folder.exists}
+        }
+                            
+
+
 
 
 class Directory():
-    def __init__(self, path:Path, save_folder:Path, global_ignore:list, local_ignore:list, logging_settings):
+    def __init__(self, path:Path, save_folder:Path, ignore, logging_settings):
         self.path = path  # location of the directory on disk
         self.hash = hash_word(self.path)
         self.save_file = save_folder / self.hash  # file where directory Graph is stored
-        self.global_ignore = global_ignore
-        self.local_ignore = local_ignore
+        self.ignore_patterns = ignore
         self.logger = logging_settings.create_logger(f"{logger_name}.{self.hash}", f"{self.hash}.log")
         
         if self.save_file.exists():
@@ -205,18 +221,14 @@ class Directory():
         self.save_file.write_bytes(pickle.dumps(self.root))
         logger.info(f"Save directory tracker @ {self.path}")
         
-    def is_in_ignore(self, path:Path, is_file=None) -> bool:
-        # is_file currently not in use
+    def is_in_ignore(self, path:Path, is_file=None) -> bool:  # is_file currently not in use
         rel = rel_path(path, self.path)
-        for pattern in self.global_ignore + self.local_ignore:
+        for pattern in self.ignore_patterns:
             if rel.match(pattern): return True
         return False
     
-    def update_attributes(self, ignore):
-        self.global_ignore = list(set(self.global_ignore + ignore))
-    
-    def get_directory_attributes(self):
-        return self.global_ignore
+    def to_dict(self):
+        return self.root.to_dict()
     
     
     
@@ -231,22 +243,21 @@ class FileTracker:
         self.save_path = data_path
     
         self.directories = {}
-        for dir_path, dir_descr in self.directories_list.items():
-            self.directories[dir_path] = Directory(Path(dir_path), self.save_path, dir_descr[GLOBAL_IGN_KEY], \
-                dir_descr[LOCAL_IGN_KEY], self.logging_settings)
+        for dir_path, dir_props in self.directories_list.items():
+            self.directories[dir_path] = Directory(Path(dir_path), self.save_path, dir_props[IGNORE_KEY], self.logging_settings)
 
 
-    def add_directory(self, path:Path,  name, global_ignore:list, local_ignore:list) -> None:
+    def add_directory(self, path:Path,  name:str, ignore_patterns:list) -> None:
         if path in self.directories: raise Exception(f"Already tracking {path}")
         
-        self.directories[path] = Directory(path, self.save_path, global_ignore, local_ignore, self.logging_settings)
-        self.directories_list.new_directory(path, name, global_ignore, local_ignore)
+        self.directories[path] = Directory(path, self.save_path, ignore_patterns, self.logging_settings)
+        self.directories_list.new_directory(path, name, ignore_patterns)
         
         logger.info(f"Tracking directory {path}") 
     
     def save(self):
         for directory in self.directories.values():
-            self.directories_list.update_ignore(directory.path, directory.global_ignore, directory.local_ignore)
+            self.directories_list.update(directory.path, directory.ignore_patterns, directory.hash)
             directory.save()
     
     def shut_down(self): 
@@ -257,5 +268,5 @@ class FileTracker:
         return Path(path) in self.directories    
         
     def __getitem__(self, path:os.PathLike):
-        return self.directories[Path(path)]   
+        return self.directories[str(path)]   
 

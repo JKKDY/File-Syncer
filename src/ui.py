@@ -19,6 +19,9 @@ class UI_Code(IntEnum):
     REQ_UUID_NAME = auto()
     REQ_UUID_INFO = auto()
     REQ_UUID_STATUS = auto()
+    REQ_DIRS = auto()
+    REQ_DIR_GRAPH = auto()
+    REQ_DIR_IGN_PATTERS = auto()
     
     UPDATE_UUID = auto()
     UPDATE_STATUS = auto()
@@ -77,7 +80,7 @@ class Socket:
 # reqests are handled sequentially i.e a request must be finished 
 # before antoher one can be started.
 # Consequence of this can be seen when initializing mulitple connections
-# over UI at the same time: UI will seem to be stutterng somewhat
+# over UI at the same time: UI will seem unresponsive
     
     
 class UiBackend:
@@ -86,7 +89,6 @@ class UiBackend:
         self.callbacks = callbacks
         self.shutdown = False
         self.connected = False
-        
         
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(("localhost", port))
@@ -106,8 +108,8 @@ class UiBackend:
         while not self.shutdown:
             try:
                 self.socket.listen(2)
-                self.req_socket = Socket(self.socket.accept()[0]) # handles requests
-                self.notif_socket = Socket(self.socket.accept()[0]) # notifes ui
+                self.req_socket = Socket(self.socket.accept()[0]) # handles requests from frontend
+                self.notif_socket = Socket(self.socket.accept()[0]) # notifes fronend
                 self.connected = True
             except socket.error as e:
                 print("shut start loop", e)
@@ -150,8 +152,8 @@ class UiFrontend:
         self.callbacks = callbacks
         self.lock = Lock()
         self.ready = Event()
-        self.req_socket = Socket() # sends requests
-        self.notif_socket = Socket() # handles notifications from file syncer
+        self.req_socket = Socket() # sends requests to backend
+        self.notif_socket = Socket() # handles notifications from backend
         self.req_socket.connect(port)
         self.notif_socket.connect(port)
         self.event_thread = Thread(target=self.event_loop)
