@@ -9,9 +9,6 @@
         <link rel="stylesheet" type="text/css" href="/styles/style.css">
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap" rel="stylesheet">
         <script src="https://kit.fontawesome.com/74ce534e54.js" crossorigin="anonymous"></script>
-        
-        <script type="text/javascript" src="/eel.js"></script>
-        <script type="text/javascript" src="/js/main.js"></script>
 
         <title> File Syncer </title>   
     </head>
@@ -21,62 +18,45 @@
         <!-- Navbar -->
         <div class="grid">
             <nav>
-                <a href="/index.html" title="Home" class="active">                     
+                <div id=indicator></div> 
+                <a href="#home" title="Home">                     
                     <i class="fas fa-home"> </i> 
-                    <div class="indicator"></div> 
                 </a>
-                <a href="/pages/connections.html" title="Connections">              
+                <a href="#connections" title="Connections">              
                     <i class="fas fa-network-wired"></i> 
                 </a>
-                <a href="/pages/syncs.html" title="Syncs">              
+                <a href="#syncs" title="Syncs">              
                     <i class="fas fa-sync"></i>
                 </a>
-                <a href="/pages/directories.html" title="Directories">              
+                <a href="#directories" title="Directories">              
                     <i class="far fa-hdd"></i> 
                 </a>
-                <a href="/pages/logs.html" title="Logs">                            
+                <a href="#logs" title="Logs">                            
                     <i class="far fa-copy"></i> 
                 </a>
-                <a href="/pages/settings.html", title="Settings" class="settingsCog">  
+                <a href="#settings", title="Settings" class="settingsCog">  
                     <i class="fas fa-cog"></i> 
                 </a>
             </nav>
-    
 
-            <main id="Home">
-                <div class="leftSide">
-                    <div class="networkInfo">
-                        <!--<i class="fas fa-rss"></i>  -->
-                        network settings
-                    </div>
-                    
-                    <div class="connectionsInfo">
-                        List of Connections
-                    </div>
 
-                    <div class="requestsInfo">
-                        connection requests
-                    </div>
-                </div>
-
-                <div class="rightSide">
-                    <div class="directoryInfo">
-                        Directories
-                    </div>
-
-                    <div class="syncQueueInfo">
-                        sync queue
-                    </div>
-    
-                    <div class="conflictsInfo">
-                        Conflicts
-                    </div>
-                </div>
-                
-            </main>
+            <div id=content>
+                <div class=page id=home> </div>
+                <div class=page id=connections> </div>
+                <div class=page id=syncs> </div>
+                <div class=page id=directories> </div>
+                <div class=page id=logs> </div>
+                <div class=page id=settings> </div>
+            </div>
 
         </div>
+
+        <div id=overlay> </div>
     
+        <script type="text/javascript" src="/js/jquery.js"></script>
+        <script type="text/javascript" src="/eel.js"></script>
+        <script type="text/javascript" src="/js/main.js"></script>
+        
     </body>
 
 </html>

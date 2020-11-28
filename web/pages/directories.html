@@ -1,98 +1,52 @@
 <!DOCTYPE html>
 
-<html> 
-    
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            
-        <link rel="stylesheet" type="text/css" href="/styles/style.css">
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-        <script src="https://kit.fontawesome.com/74ce534e54.js" crossorigin="anonymous"></script>
-            
-        <title> File Syncer </title>   
-    </head>
 
+<main id="Directories">
 
-    <body>
-        <!-- Navbar -->
-        <div class="grid">
-            <nav>
-                <a href="/index.html" title="Home">                     
-                    <i class="fas fa-home"> </i>  
-                </a>
-                <a href="/pages/connections.html" title="Connections">              
-                    <i class="fas fa-network-wired"></i> 
-                </a>
-                <a href="/pages/syncs.html" title="Syncs">              
-                    <i class="fas fa-sync"></i>
-                </a>
-                <a href="/pages/directories.html" title="Directories", class="active">              
-                    <i class="far fa-hdd"></i> 
-                    <div class="indicator"></div> 
-                </a>
-                <a href="/pages/logs.html" title="Logs">                            
-                    <i class="far fa-copy"></i> 
-                </a>
-                <a href="/pages/settings.html", title="Settings" class="settingsCog">  
-                    <i class="fas fa-cog"></i> 
-                </a>
-            </nav>
+    <div class=dir_selection>
+        <div class=selection_header> 
+            <span> Directories </span>
+            <button class="circle_btn plus" id = "new_directory" title="add Directory"></button>
+        </div>
+        <div id=dir_list>
+        </div>
+    </div>
+    <div class=dir_info>
+        <div id=path> 
+            <span>D:\dev\File Syncer GUI\File Syncer </span>
+        </div>   
 
+        <div id=directory_properties>
+            <span id=name> Folder </span>
+            <div class=ignore>
+                <span class=header> 
+                    Tracker ignores patterns
+                    <i class="far fa-edit"></i>
+                </span>
+                <div id=ignore_patterns>
+                </div>
+            </div>
+        </div>
 
-            <main id="Directories">
-
-                <div class=dir_selection>
-                    <div class=selection_header> 
-                        <span> Directories </span>
-                        <button class="circle_btn plus" id = "new_directory" title="add Directory"></button>
-                    </div>
-                    <div id=dir_list>
+        <div id=directory_view>
+            <div class=folder>
+                <i class="far fa-folder-open"></i>
+                <div class=name> Root 
+                    <i class="far fa-plus-square" id=collapse_lvl_plus title="Expand next level"></i>
+                    <i class="far fa-minus-square" id=collapse_lvl_minus title="Collapse level"></i>
+                </div>
+                <div class=content>
+                    <div class=file> File1</div>
+                    <div class=file> File2</div>
+                    <div class=folder>
+                        <i class="far fa-folder"> </i> 
+                        <div class=name> Folder1 </div>
+                        <div class=content> <div class=file> File1</div></div>
                     </div>
                 </div>
-                <div class=dir_info>
-                    <div id=path> 
-                        <span>D:\dev\File Syncer GUI\File Syncer </span>
-                    </div>   
+            </div>
+        </div>
+    </div>
+</main>
 
-                    <div id=directory_properties>
-                        <span id=name> Folder </span>
-                        <div class=ignore>
-                            <span class=header> 
-                                Tracker ignores patterns
-                                <i class="far fa-edit"></i>
-                            </span>
-                            <div id=ignore_patterns>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id=directory_view>
-                        <div class=folder>
-                            <i class="far fa-folder-open"></i>
-                            <div class=name> Root 
-                                <i class="far fa-plus-square" id=collapse_lvl_plus title="Expand next level"></i>
-                                <i class="far fa-minus-square" id=collapse_lvl_minus title="Collapse level"></i>
-                            </div>
-                            <div class=content>
-                                <div class=file> File1</div>
-                                <div class=file> File2</div>
-                                <div class=folder>
-                                    <i class="far fa-folder"> </i> 
-                                    <div class=name> Folder1 </div>
-                                    <div class=content> <div class=file> File1</div></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>  <!-- grid -->
-        <div id="overlay" onclick="overlay_off()"> </div>
-
-        <script type="text/javascript" src="/eel.js"></script>
-        <script type="text/javascript" src="/js/main.js"></script>
-        <script type="text/javascript" src="/js/directories.js"></script>
-    </body>
-
-</html>
+<script type="text/javascript" src="/js/directories.js"></script>

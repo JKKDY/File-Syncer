@@ -28,12 +28,11 @@ class FileSyncer(Config):
         
         self.ui = UiBackend(self.ui_port, {
             UI_Code.REQ_UUIDS : self.get_uuids,
-            UI_Code.REQ_UUID_NAME : self.get_uuid_name,
             UI_Code.REQ_UUID_INFO : self.get_uuid_info,
             UI_Code.REQ_UUID_STATUS : self.get_uuid_status,
             UI_Code.REQ_DIRS : self.get_directories,
-            UI_Code.REQ_DIR_GRAPH : self.get_dir_graph,
-            UI_Code.REQ_DIR_IGN_PATTERS: self.get_ignore_patters,
+            UI_Code.REQ_DIR_INFO : self.get_directory_info,
+            UI_Code.REQ_DIR_GRAPH : self.get_directory_graph,
             UI_Code.ADD_CONNECTION : self.add_connection,
             UI_Code.UUID_CONNECT : self.connect,
             UI_Code.UUID_DISCONNECT : self.disconnect
@@ -58,19 +57,19 @@ class FileSyncer(Config):
         
         
     def get_uuids(self): return list(self.connections.keys())
-    
-    def get_uuid_name(self, uuid): return self.connections[uuid][NICKNAME_KEY]
-    
+        
     def get_uuid_info(self, uuid): return self.connections[uuid].to_dict()
      
     def get_uuid_status(self, uuid): return 2 if uuid in self.server.clients else 0 
     
-    def get_directories(self): return self.directories.directories()
     
-    def get_dir_graph(self, directory): return self.file_tracker[directory].to_dict()
+    def get_directories(self): return list(self.directories.keys())
     
-    def get_ignore_patters(self, directory): return self.file_tracker[directory].ignore_patterns
+    def get_directory_info(self, directory): return self.directories[directory].to_dict() 
     
+    def get_directory_graph(self, directory): return self.file_tracker[directory].to_dict()
+    
+        
     def add_connection(self, hostname, port, name): return self.connections.new_connection(hostname, port, name)
         
     def connect(self, uuid): return self.server.connect(uuid)

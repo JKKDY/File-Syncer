@@ -1,13 +1,14 @@
 @charset "UTF-8";
 /*--border-color: #313749;*/
 #Home {
-  padding: 1em;
   display: -ms-grid;
   display: grid;
   -ms-grid-columns: 35% 1fr;
       grid-template-columns: 35% 1fr;
   -ms-grid-rows: auto;
       grid-template-rows: auto;
+  min-width: 0;
+  min-height: 0;
   /*gap: 1em;*/
 }
 
@@ -23,8 +24,8 @@
   display: grid;
   -ms-grid-columns: 1fr 1fr;
       grid-template-columns: 1fr 1fr;
-  -ms-grid-rows: 60% auto;
-      grid-template-rows: 60% auto;
+  -ms-grid-rows: 60% 1fr;
+      grid-template-rows: 60% 1fr;
   gap: 1em;
 }
 
@@ -934,7 +935,7 @@
   margin-right: 1.3vw;
   font-size: 22px;
   font-weight: 500;
-  border-bottom: 2px solid #2F3247;
+  border-bottom: 3px solid #2F3247;
 }
 
 #Directories .dir_selection .selection_header .circle_btn.plus {
@@ -1025,7 +1026,7 @@
   width: auto;
   font-size: 18px;
   padding: auto 0;
-  border-bottom: 2px solid #2F3247;
+  border-bottom: 3px solid #2F3247;
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
@@ -1109,7 +1110,7 @@
   min-height: 0;
   -ms-grid-column: 2;
   grid-column: 2;
-  border-left: 2px solid #2F3247;
+  border-left: 3px solid #2F3247;
   padding: 1.5vw 1.5vw;
   display: -ms-grid;
   display: grid;
@@ -1140,7 +1141,7 @@
 
 #directory_properties .ignore .header {
   padding-bottom: calc(7px + 0.5vh);
-  border-bottom: 2px solid #2F3247;
+  border-bottom: 3px solid #2F3247;
   margin-bottom: 0.8vh;
 }
 
@@ -1201,16 +1202,29 @@ body .grid {
       grid-template-columns: minmax(auto, 1fr) 20fr;
 }
 
+body content {
+  height: 100%;
+  width: 100%;
+}
+
+body .page {
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: none;
+}
+
+body .page.active {
+  display: inline;
+}
+
 body main {
   min-width: 0;
   min-height: 0;
+  height: 100%;
+  width: 100%;
   max-height: 100vh;
-  max-width: 100vw;
-}
-
-i svg {
-  max-width: 100%;
-  max-height: 100%;
 }
 
 ::-webkit-scrollbar {
@@ -1243,37 +1257,35 @@ button {
 
 nav {
   border-right: 2px solid #2F3247;
+  padding-top: 2.3em;
+  padding-bottom: 1em;
   display: -ms-grid;
   display: grid;
-  padding-top: 3em;
-  padding-bottom: 1em;
-  -ms-grid-rows: (4em)[4] 4em 1fr;
-      grid-template-rows: repeat(4, 4em) 4em 1fr;
+  grid-row-gap: 3vh;
+  -ms-grid-rows: (2em)[5] 1fr 2em;
+      grid-template-rows: repeat(5, 2em) 1fr 2em;
+  -ms-grid-columns: 3px auto 3px;
+      grid-template-columns: 3px auto 3px;
 }
 
 nav a {
+  -ms-grid-column: 2;
+  grid-column: 2;
   -ms-grid-row-align: center;
       align-self: center;
   -ms-grid-column-align: center;
       justify-self: center;
   display: -ms-grid;
   display: grid;
-  -ms-grid-columns: 3px auto 3px;
-      grid-template-columns: 3px auto 3px;
-  -ms-grid-column: 1;
-      grid-column-start: 1;
+  height: 2em;
   text-decoration: none;
   color: #676978;
-  width: 100%;
-  height: 2em;
   min-width: 2em;
   -webkit-transition: all 0.23s ease 0s;
   transition: all 0.23s ease 0s;
 }
 
 nav i {
-  -ms-grid-column: 2;
-      grid-column-start: 2;
   height: 1em;
   /* size of icons */
   -ms-flex-item-align: center;
@@ -1281,7 +1293,6 @@ nav i {
       align-self: center;
   -ms-grid-column-align: center;
       justify-self: center;
-  size: auto;
 }
 
 nav .settingsCog {
@@ -1297,16 +1308,15 @@ nav .active {
   color: #00CD69;
 }
 
-nav .indicator {
+nav #indicator {
+  position: absolute;
+  margin-left: -17px;
   height: 2em;
   width: 20px;
-  margin: 0px -17px;
   background-color: #00CD69;
   border-radius: 3px;
-  -ms-grid-column: 1;
-      grid-column-start: 1;
-  -ms-grid-row: 1;
-      grid-row-start: 1;
+  -webkit-transition: all 0.15s ease 0.1s;
+  transition: all 0.15s ease 0.1s;
 }
 
 #overlay {

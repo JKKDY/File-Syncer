@@ -4,12 +4,13 @@ const STATUS_CONNECTED = 2;
 const STATUS_PENDING = 3;
 const STATUS_FAILED = 4;
 
-const connection_info_grid = document.querySelector(".connection_info_grid")
 
 
 
-// HELPER FUNCTIONS
 
+// ##################
+//   HELPER FUNCTIONS
+// ##################
 function update_status_span(span, status){
     span.innerHTML = "";
     let icon = document.createElement("i");
@@ -41,9 +42,14 @@ function update_status_span(span, status){
 
 
 
-// CLASSES
 
-const add_window = new (class{
+
+
+// ##################
+//      CLASSES
+// ##################
+
+class NewConnectionWindow{
     constructor(){
         this.window = document.getElementById("add_window")
         this.hostname_input = document.getElementById("add_hostname")
@@ -68,11 +74,11 @@ const add_window = new (class{
         await new_connection(uuid, conn_selection)
         overlay_off()
     }
-})()
+}
 
 
 
-const delete_window = new (class {
+class DeleteConnWindow {
     constructor(){
         this.window = document.getElementById("delete_window")
         this.connection_name = document.getElementById("del_window_name")
@@ -81,23 +87,23 @@ const delete_window = new (class {
     }
 
     display(uuid, name){
-        overlay_on()
-        this.window.style.display = "grid"
-        this.connection_name.innerHTML = name
+        overlay_on();
+        this.window.style.display = "grid";
+        this.connection_name.innerHTML = name;
         this.delete_btn.onclick = function(){
-            connections[uuid].remove_row(conn_selection)
-            delete connections[uuid]
+            window.connections.info_display.clear();
+            window.connections.conn_selection.remove(uuid);
             overlay_off();
-            connection_info_grid.style.display = "none"
         }
     }
-})()
+}
 
 
 
 
-const info_display = new (class {
+class ConnectionInfoDisplay{
     constructor(){
+        this.grid = document.querySelector(".connection_info_grid")
         this.name_field = document.getElementById("name_field")
         this.status_span = document.querySelector("#status_field span")
         this.uuid_field = document.getElementById("uuid")
@@ -106,23 +112,31 @@ const info_display = new (class {
         this.auto_connect_field = document.getElementById("auto_connect")
         this.directories_list = document.querySelector("#directories_field .list")
         this.syncs_list = document.querySelector("#syncs_field .list")
-        this.active=""
+        this.active=undefined;
     }
 
-    async display(uuid){
-        if (this.active === uuid) return
-        if (this.active !== "" && connections[this.active] !== undefined) connections[this.active].set_active(false)
-        connections[uuid].set_active(true)
-        this.active=uuid
+    clear(){
+        this.active = undefined;
+        this.grid.style.display = "none"
+    }
 
-        connection_info_grid.style.display = "grid"
-        let info = await eel.get_uuid_info(uuid)()
-        let status = await eel.get_uuid_status(uuid)()
+    async display(row){
+        // set row as active
+        if (this.active) {
+            if (this.active.uuid === row.uuid) return
+            this.active.set_active(false)
+        }
+        this.active = row
+        this.active.set_active(true)
+
+        this.grid.style.display = "grid"
+        let info = window.data.connections[row.uuid]
+        let status = await eel.get_uuid_status(row.uuid)()
 
         this.name_field.innerHTML = info["name"]
         update_status_span(this.status_span, status)
         
-        this.uuid_field.innerHTML = uuid
+        this.uuid_field.innerHTML = row.uuid
         this.hostname_field.innerHTML = info["hostname"]
         this.port_field.innerHTML = info["port"]
         this.auto_connect_field.innerHTML = info["auto_connect"] // set str in webGUI.py
@@ -157,12 +171,11 @@ const info_display = new (class {
             this.syncs_list.appendChild(sync)
         }
     }
-})()
+}
 
 
 
-
-class Connection{
+class ConnectionRow{
     constructor(uuid){
         this.uuid = uuid
         this.active = false
@@ -170,62 +183,55 @@ class Connection{
         this.row = document.createElement("div")
         this.row.id = uuid
         this.row.className = "tb_row"
-        this.row.addEventListener("click", ()=> info_display.display(this.uuid))
+        this.row.addEventListener("click", ()=> window.connections.info_display.display(this))
 
         this.content = document.createElement("div")
         this.content.className = "tb_content"
 
         this.name_col = document.createElement("span")
-        this.content.appendChild(this.name_col)
+        this.name_col.innerHTML = window.data.connections[uuid].name
+        console.log(window.data.connections[uuid].name)
 
         this.status_col = document.createElement("span")
         this.status_col.className = "tb_status"
-        this.content.appendChild(this.status_col)
 
-        this.nt_btn = document.createElement("button") // nt_btn = network button : button for connecting/disconnecting
+        // nt_btn = network button : button for connecting/disconnecting
+        this.nt_btn = document.createElement("button") 
         this.nt_btn.addEventListener("click", async (event)=>{
             event.stopPropagation()
-            await info_display.display(this.uuid)
+            await window.connections.info_display.display(this)
             if (this.status === STATUS_DISCONNECTED){
                 this.update_status_span(STATUS_PENDING)
                 await eel.connect(this.uuid)
-                // if (!await eel.connect(this.uuid)()) this.update_status_span(STATUS_FAILED)
             }else if (this.status === STATUS_CONNECTED){
                 await eel.disconnect(this.uuid)()
             }
         })
-        this.content.appendChild(this.nt_btn)
 
         this.delete_btn = document.createElement("button")
         this.delete_btn.className = "far fa-trash-alt delete_btn tb_btn"
         this.delete_btn.title = "Delete"
+        this.delete_btn.onclick = ()=> window.connections.delete_conn_window.display(this.uuid)
+
+        this.content.appendChild(this.name_col)
+        this.content.appendChild(this.status_col)
         this.content.appendChild(this.delete_btn)
-        this.delete_btn.onclick = ()=> delete_window.display(this.uuid)
+        this.content.appendChild(this.nt_btn)
 
         this.row.appendChild(this.content)
-        this.status = STATUS_DISCONNECTED
+        this.update_status(window.data.connections[uuid].status)
     }
 
-    add_row(selection){
-        selection.table.appendChild(this.row)
-    }
-    
-    remove_row(selection){
-        selection.table.removeChild(this.row)
-    }
 
-    set_active(active){
-        if (active) this.row.classList.add('active')
-        else this.row.classList.remove('active')
-    }
+    // update_status_span(status){
+    //     update_status_span(this.status_col, status)
+    //     if (this.uuid === window..active) update_status_span(info_display.status_span, status)
+    // }
 
-    async update_name(){
-        this.name_col.innerHTML = await eel.get_uuid_name(this.uuid)()
-    }
-
-    async update_status(status){
+    update_status(status){
         this.status = status
-        this.update_status_span(status)
+        // this.update_status_span(status)
+        update_status_span(this.status_col, status)
         switch(status){
             case STATUS_DISCONNECTED:
                 this.nt_btn.className = "fas fa-check nt_btn tb_btn"
@@ -240,24 +246,18 @@ class Connection{
         } 
     }
 
-    update_status_span(status){
-        update_status_span(this.status_col, status)
-        if (this.uuid === info_display.active) update_status_span(info_display.status_span, status)
+    set_active(active){
+        if (active) this.row.classList.add('active')
+        else this.row.classList.remove('active')
     }
 }
-async function new_connection(uuid){
-    connections[uuid] = new Connection(uuid)
-    await connections[uuid].update_name()
-    await connections[uuid].update_status(await eel.get_uuid_status(uuid)())
-    connections[uuid].add_row(conn_selection)
-}
-const connections = {};
 
 
 
 
 class Selection{
     constructor(id){
+        this.rows = {}
         this.selection = document.getElementById(id)
         this.table = document.querySelector("#"+id+" .selection_table")
         this.input = document.querySelector("#"+id+" input")
@@ -279,30 +279,56 @@ class Selection{
             }
         }
     }
+
+    add(uuid, row){
+        this.rows[uuid] = row;
+        this.table.appendChild(row.row)
+    }
+
+    remove(uuid){
+        this.table.removeChild(this.rows[uuid].row)
+        delete this.rows[uuid]
+    }
 }
-const conn_selection = new Selection("connections_selection");
-const req_selection = new Selection("requests_selection");
 
 
 
 
 
-// MAIN
+
+
+// ##################
+//      MAIN
+// ##################
  
 (async function(){
     "use strict";
-    const uuids = await eel.get_uuids()();
 
-    for (const uuid of uuids) await new_connection(uuid)
+    window.connections = {};
+    window.connections.info_display = new ConnectionInfoDisplay();
+    window.connections.conn_selection =  new Selection("connections_selection");
+    window.connections.req_selection = new Selection("requests_selection");
 
-    document.getElementById("new_connection").onclick = ()=> add_window.display()
+    window.connections.new_conn_window = new NewConnectionWindow();
+    window.connections.delete_conn_window = new DeleteConnWindow();
+    
+    for (const [uuid, conn] of Object.entries(window.data.connections)){
+        window.connections.conn_selection.add(uuid, new ConnectionRow(uuid))
+    }
+
+    document.getElementById("new_connection").onclick = ()=> window.connections.new_conn_window.display()
 
 })();
 
 
 
 
-// EXPOSED FUNTIONS
+
+
+
+// ###################
+//  EXPOSED FUNCTIONS
+// ###################
 eel.expose(update_status)
 function update_status(uuid, status){
     console.log(status)

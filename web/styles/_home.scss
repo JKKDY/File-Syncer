@@ -1,8 +1,11 @@
 #Home{
-    padding: 1em;
+    // padding: 1em;
     display: grid;
     grid-template-columns: 35% 1fr;
     grid-template-rows: auto;
+    min-width: 0;
+    min-height: 0;
+
     /*gap: 1em;*/
 }
 
@@ -14,7 +17,7 @@
 #Home .rightSide{
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 60% auto;
+    grid-template-rows: 60% 1fr;
     gap: 1em;
 }
 #Home .rightSide > div{

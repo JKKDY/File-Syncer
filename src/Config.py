@@ -187,8 +187,8 @@ class DirectoriesList(JSON_File):
         self[str(path)][IGNORE_KEY] = ignore_patterns
         self[str(path)][HASH_KEY] = hash
         
-    def directories(self):
-        return {str(path):directory[NICKNAME_KEY] for path, directory in self.items()}
+    # def directories(self):
+    #     return {str(path):directory[NICKNAME_KEY] for path, directory in self.items()}
             
        
         

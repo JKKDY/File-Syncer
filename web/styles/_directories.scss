@@ -37,7 +37,7 @@ $dir_selection_padding: 1.3vw;
             width: $header_font_size;
             margin-left: 0px;
         }
-        border-bottom: 2px solid $secondary_color;
+        border-bottom: 3px solid $secondary_color;
     }
 
     #dir_list{
@@ -116,7 +116,7 @@ $dir_selection_padding: 1.3vw;
     width: auto;
     font-size: 18px;
     padding: auto 0;
-    border-bottom: 2px solid $secondary_color;
+    border-bottom: 3px solid $secondary_color;
     align-items: center;
     font-weight: 500;
 }
@@ -194,7 +194,7 @@ $dir_selection_padding: 1.3vw;
     min-width: 0;
     min-height: 0;
     grid-column: 2;
-    border-left: 2px solid $secondary_color;
+    border-left: 3px solid $secondary_color;
     padding: 1.5vw 1.5vw;
     display: grid;
     grid-template-rows: auto 1fr;
@@ -214,7 +214,7 @@ $dir_selection_padding: 1.3vw;
         grid-template-rows: min-content 1fr;
         .header{
             padding-bottom: calc(7px + 0.5vh);
-            border-bottom: 2px solid $secondary_color;
+            border-bottom: 3px solid $secondary_color;
             margin-bottom: 0.8vh;
         }
 
@@ -232,7 +232,7 @@ $dir_selection_padding: 1.3vw;
             display: grid;
             grid-auto-rows: calc(22px + 1vh);
             padding-left: 1vw;
-            >span{
+            >span{ 
                 display: inline-block;
                 vertical-align: middle;
                 font-size: 15px;

@@ -12,4 +12,3 @@ if __name__ == "__main__":
         syncer.start_server()
         webGUI.start() 
         # input()
-        

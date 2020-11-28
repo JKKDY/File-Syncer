@@ -16,12 +16,12 @@ STATUS_PENDING = 3
 
 class UI_Code(IntEnum):
     REQ_UUIDS = auto()
-    REQ_UUID_NAME = auto()
     REQ_UUID_INFO = auto()
     REQ_UUID_STATUS = auto()
+    
     REQ_DIRS = auto()
+    REQ_DIR_INFO = auto()
     REQ_DIR_GRAPH = auto()
-    REQ_DIR_IGN_PATTERS = auto()
     
     UPDATE_UUID = auto()
     UPDATE_STATUS = auto()

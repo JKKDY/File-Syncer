@@ -1,160 +1,110 @@
 <!DOCTYPE html>
 
-<html> 
-    
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            
-        <link rel="stylesheet" type="text/css" href="/styles/style.css">
-        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-        <script src="https://kit.fontawesome.com/74ce534e54.js" crossorigin="anonymous"></script>
-        
-        <script type="text/javascript" src="/eel.js"></script>
-        <script type="text/javascript" src="/js/main.js"></script>
-
-        <title> File Syncer </title>   
-    </head>
 
 
-    <body>
-        <!-- Navbar -->
-        <div class="grid">
-            <nav>
-                <a href="/index.html" title="Home">                     
-                    <i class="fas fa-home"> </i> 
-                </a>
-                <a href="/pages/connections.html" title="Connections">              
-                    <i class="fas fa-network-wired"></i> 
-                </a>
-                <a href="/pages/syncs.html" title="Syncs" class="active">              
-                    <i class="fas fa-sync"></i>
-                    <div class="indicator"></div> 
-                </a>
-                <a href="/pages/directories.html" title="Directories">              
-                    <i class="far fa-hdd"></i> 
-                </a>
-                <a href="/pages/logs.html" title="Logs">                            
-                    <i class="far fa-copy"></i> 
-                </a>
-                <a href="/pages/settings.html", title="Settings" class="settingsCog">  
-                    <i class="fas fa-cog"></i> 
-                </a>
-            </nav>
-            
-
-            <main id="Syncs">
-                <div class=conn_selection>
-                    <div class=selection_header> 
-                        <span> Connections </span>
-                        <button id="manage_connections" title="Manage Connections">
-                            <i class="far fa-arrow-alt-circle-right"></i>
-                        </button>
-                    </div>
-                    <div id=conn_list>
-                     <div id=uuid>
-                        <i class="far fa-times-circle"></i>
-                        <span> Desktop Coburg </span>
-                    </div>
-                    <div id=uuid1>
-                        <i class="far fa-check-circle"></i>
-                        <span> Desktop München </span>
-                    </div> 
-                    </div>
-                </div>
-
-                <div class=syncs>
-
-                    <div>
-                        <div class=sync_selection>
-                            <div class=header>
-                                <span> Local Directories </span>
-                                <button class="circle_btn plus" id = "new_sync" title="Add sync"></button>
-                                <span> Remote Directories </span>
-                            </div>
-                            <div id=sync_list>
-                                <div class=sync>
-                                    <div class=local> D:/local dir/ local dir </div>
-                                    <div class=remote_dirs>
-                                        <div class=remote> 
-                                            <i class="fas fa-sync-alt"></i>
-                                            <span> remote dir/ remot dir  </span>
-                                        </div>
-                                        <div class=remote> 
-                                            <i class="fas fa-sync-alt"></i>
-                                            <span> remote dir/ remot dir  </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class=sync_info>
-                            <div class=header>
-                                <div>
-                                    <span class=name> Some dir </span>
-                                    <span class=path> C:\Another\Local\Dir </span>
-                                </div>
-                                <button id=sync_now> <i class="fas fa-sync-alt" title="Sync now"></i> </button>
-                                <div>
-                                    <span class=name> Test dir </span>
-                                    <span class=path> C:\Another\Local\Dir </span>
-                                </div>
-                            </div>
-                            <div class=props_container>
-                                <div class=properties>
-                                    <tr>
-                                        <span class=key> Bidirectional sync: </span>
-                                        <span class=value> Yes </span>
-                                    </tr>
-                                    <tr>
-                                        <span class=key> Auto sync: </span>
-                                        <span class=value> Yes, every 5min</span>
-                                    </tr>
-                                </div>
-
-                                <div class=confilcts>
-
-                                </div>
-
-                                <div class=ignore>
-                                    <div class=ign_header>
-                                        <span id=loc_ign_select class=active> Local ignores </span>
-                                        <span id=synced_ign> Synced ignores </span>
-                                        <button class="circle_btn plus" id=add_ign title="Add new ignore rule"></button>
-                                    </div>
-                                    <div id=local_ign class="active ign_lst">
-                                        <span> something </span>
-                                        <span> something </span>
-                                        <span> something </span>
-                                        <span> something </span>
-                                        <span> something </span>
-                                        <span> something </span>
-                                        <span> something </span>
-                                        <span> something </span>
-                                        <span> something </span>
-                                        <span> something </span>
-                                        <span> something </span>
-                                        <span> something </span>
-                                        <span> something </span>
-                                    </div>
-                                    <div id=synced_ign class=ign_lst>
-                                        
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-            </main>
-
+<main id="Syncs">
+    <div class=conn_selection>
+        <div class=selection_header> 
+            <span> Connections </span>
+            <button id="manage_connections" title="Manage Connections">
+                <i class="far fa-arrow-alt-circle-right"></i>
+            </button>
         </div>
-    
-    </body>
+        <div id=conn_list>
+        <div id=uuid>
+            <i class="far fa-times-circle"></i>
+            <span> Desktop Coburg </span>
+        </div>
+        <div id=uuid1>
+            <i class="far fa-check-circle"></i>
+            <span> Desktop München </span>
+        </div> 
+        </div>
+    </div>
 
-</html>
+    <div class=syncs>
+
+        <div>
+            <div class=sync_selection>
+                <div class=header>
+                    <span> Local Directories </span>
+                    <button class="circle_btn plus" id = "new_sync" title="Add sync"></button>
+                    <span> Remote Directories </span>
+                </div>
+                <div id=sync_list>
+                    <div class=sync>
+                        <div class=local> D:/local dir/ local dir </div>
+                        <div class=remote_dirs>
+                            <div class=remote> 
+                                <i class="fas fa-sync-alt"></i>
+                                <span> remote dir/ remot dir  </span>
+                            </div>
+                            <div class=remote> 
+                                <i class="fas fa-sync-alt"></i>
+                                <span> remote dir/ remot dir  </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class=sync_info>
+                <div class=header>
+                    <div>
+                        <span class=name> Some dir </span>
+                        <span class=path> C:\Another\Local\Dir </span>
+                    </div>
+                    <button id=sync_now> <i class="fas fa-sync-alt" title="Sync now"></i> </button>
+                    <div>
+                        <span class=name> Test dir </span>
+                        <span class=path> C:\Another\Local\Dir </span>
+                    </div>
+                </div>
+                <div class=props_container>
+                    <div class=properties>
+                        <tr>
+                            <span class=key> Bidirectional sync: </span>
+                            <span class=value> Yes </span>
+                        </tr>
+                        <tr>
+                            <span class=key> Auto sync: </span>
+                            <span class=value> Yes, every 5min</span>
+                        </tr>
+                    </div>
+
+                    <div class=confilcts>
+
+                    </div>
+
+                    <div class=ignore>
+                        <div class=ign_header>
+                            <span id=loc_ign_select class=active> Local ignores </span>
+                            <span id=synced_ign> Synced ignores </span>
+                            <button class="circle_btn plus" id=add_ign title="Add new ignore rule"></button>
+                        </div>
+                        <div id=local_ign class="active ign_lst">
+                            <span> something </span>
+                            <span> something </span>
+                            <span> something </span>
+                            <span> something </span>
+                            <span> something </span>
+                            <span> something </span>
+                            <span> something </span>
+                            <span> something </span>
+                            <span> something </span>
+                            <span> something </span>
+                            <span> something </span>
+                            <span> something </span>
+                            <span> something </span>
+                        </div>
+                        <div id=synced_ign class=ign_lst> </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- <script type="text/javascript" src="/js/syncs.js"></script> -->
