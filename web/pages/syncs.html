@@ -3,22 +3,14 @@
 
 
 <main id="Syncs">
-    <div class=conn_selection>
-        <div class=selection_header> 
+    <div class=selection_list>
+        <div class=selection_list_header> 
             <span> Connections </span>
             <button id="manage_connections" title="Manage Connections">
                 <i class="far fa-arrow-alt-circle-right"></i>
             </button>
         </div>
-        <div id=conn_list>
-        <div id=uuid>
-            <i class="far fa-times-circle"></i>
-            <span> Desktop Coburg </span>
-        </div>
-        <div id=uuid1>
-            <i class="far fa-check-circle"></i>
-            <span> Desktop München </span>
-        </div> 
+        <div id=conn_list class=list>
         </div>
     </div>
 
@@ -31,17 +23,19 @@
                     <button class="circle_btn plus" id = "new_sync" title="Add sync"></button>
                     <span> Remote Directories </span>
                 </div>
-                <div id=sync_list>
-                    <div class=sync>
-                        <div class=local> D:/local dir/ local dir </div>
-                        <div class=remote_dirs>
-                            <div class=remote> 
-                                <i class="fas fa-sync-alt"></i>
-                                <span> remote dir/ remot dir  </span>
-                            </div>
-                            <div class=remote> 
-                                <i class="fas fa-sync-alt"></i>
-                                <span> remote dir/ remot dir  </span>
+                <div id=sync_list_container>
+                    <div class=sync_list>
+                        <div class=sync>
+                            <div class=local> D:/local dir/ local dir </div>
+                            <div class=remote_dirs>
+                                <div class=remote> 
+                                    <i class="fas fa-sync-alt"></i>
+                                    <span> remote dir/ remot dir  </span>
+                                </div>
+                                <div class=remote> 
+                                    <i class="fas fa-sync-alt"></i>
+                                    <span> remote dir/ remot dir  </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -53,24 +47,24 @@
             <div class=sync_info>
                 <div class=header>
                     <div>
-                        <span class=name> Some dir </span>
-                        <span class=path> C:\Another\Local\Dir </span>
+                        <span class=name id=loc_name> Some dir </span>
+                        <span class=path id=loc_path> C:\Another\Local\Dir </span>
                     </div>
                     <button id=sync_now> <i class="fas fa-sync-alt" title="Sync now"></i> </button>
                     <div>
-                        <span class=name> Test dir </span>
-                        <span class=path> C:\Another\Local\Dir </span>
+                        <span class=name id=rem_name> Test dir </span>
+                        <span class=path id=rem_path> C:\Another\Local\Dir </span>
                     </div>
                 </div>
                 <div class=props_container>
                     <div class=properties>
                         <tr>
                             <span class=key> Bidirectional sync: </span>
-                            <span class=value> Yes </span>
+                            <span class=value id=bi_sync> Yes </span>
                         </tr>
                         <tr>
                             <span class=key> Auto sync: </span>
-                            <span class=value> Yes, every 5min</span>
+                            <span class=value id=auto_sync> Yes, every 5min</span>
                         </tr>
                     </div>
 
@@ -107,4 +101,4 @@
     </div>
 </main>
 
-<!-- <script type="text/javascript" src="/js/syncs.js"></script> -->
+<script type="text/javascript" src="/js/syncs.js"></script>
