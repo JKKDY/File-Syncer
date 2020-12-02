@@ -1,8 +1,3 @@
-const STATUS_DISCONNECTED = 0;
-const STATUS_AVAILABLE = 1;
-const STATUS_CONNECTED = 2;
-const STATUS_PENDING = 3;
-const STATUS_FAILED = 4;
 
 
 

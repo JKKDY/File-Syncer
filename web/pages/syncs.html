@@ -46,54 +46,51 @@
         <div>
             <div class=sync_info>
                 <div class=header>
-                    <div>
-                        <span class=name id=loc_name> Some dir </span>
-                        <span class=path id=loc_path> C:\Another\Local\Dir </span>
-                    </div>
-                    <button id=sync_now> <i class="fas fa-sync-alt" title="Sync now"></i> </button>
-                    <div>
-                        <span class=name id=rem_name> Test dir </span>
-                        <span class=path id=rem_path> C:\Another\Local\Dir </span>
-                    </div>
+                    <span id=info_selector> Sync Info </span>
+                    <span id=loc_ign_selector> Local Ignores </span>
+                    <span id=sync_ign_selector> Synced Ignores </span>
+                    <span id=conflicts_selector> Conflicts </span>
+                    <span class=dummy></span>
+                    <button id=edit_btn title=Edit><i class="far fa-edit"></i></button>
+                    <button id=sync_btn title="Sync now">
+                        <i class="fas fa-sync-alt"></i> 
+                    </button>
+                    <button id=delete_btn title=Delete>
+                        <i class="far fa-trash-alt"></i>
+                    </button>
                 </div>
-                <div class=props_container>
-                    <div class=properties>
-                        <tr>
-                            <span class=key> Bidirectional sync: </span>
-                            <span class=value id=bi_sync> Yes </span>
-                        </tr>
-                        <tr>
-                            <span class=key> Auto sync: </span>
-                            <span class=value id=auto_sync> Yes, every 5min</span>
-                        </tr>
+                <div id=props_container>
+                    <div id=info_container>
+                        <span class=key>Local directory: </span>
+                        <span class=value> 
+                            <span class=name id=loc_name>local dir</span>
+                            <span class=path id=loc_path>C:\Another\Local\Dir</span>
+                        </span>
+
+                        <span class=key>Remote directory: </span>
+                        <span class=value> 
+                            <span class=name id=rem_name>remote dir</span>
+                            <span class=path id=rem_path>C:\Another\Remote\Dir</span>
+                        </span>
+
+                        <span class=key>Bidirectional sync:</span>
+                        <span class=value id=bi_sync>Yes </span>
+
+                        <span class=key>Auto sync: </span>
+                        <span class=value id=auto_sync>Yes, every 5min</span>
+
+                        <!-- <span class=key>Timeout: </span>
+                        <span class=value id=time_out>None</span> -->
                     </div>
 
-                    <div class=confilcts>
-
+                    <div id=loc_ign_container>
                     </div>
 
-                    <div class=ignore>
-                        <div class=ign_header>
-                            <span id=loc_ign_select class=active> Local ignores </span>
-                            <span id=synced_ign> Synced ignores </span>
-                            <button class="circle_btn plus" id=add_ign title="Add new ignore rule"></button>
-                        </div>
-                        <div id=local_ign class="active ign_lst">
-                            <span> something </span>
-                            <span> something </span>
-                            <span> something </span>
-                            <span> something </span>
-                            <span> something </span>
-                            <span> something </span>
-                            <span> something </span>
-                            <span> something </span>
-                            <span> something </span>
-                            <span> something </span>
-                            <span> something </span>
-                            <span> something </span>
-                            <span> something </span>
-                        </div>
-                        <div id=synced_ign class=ign_lst> </div>
+                    <div id=sync_ign_container>
+                    </div>
+
+                    <div id=conflicts_container>
+                        Conflicts
                     </div>
                 </div>
             </div>

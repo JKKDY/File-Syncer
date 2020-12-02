@@ -29,6 +29,7 @@ class UI_Code(IntEnum):
     ADD_CONNECTION = auto()
     UUID_CONNECT = auto()
     UUID_DISCONNECT = auto()
+    UUID_SYNC = auto()
     
     BEGINN_REQ = auto()
     END_REQ = auto()

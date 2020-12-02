@@ -33,7 +33,8 @@ def add_connection(hostname, port, name): return webgui.request(UI_Code.ADD_CONN
 def connect(uuid): return webgui.request(UI_Code.UUID_CONNECT, uuid)
 @eel.expose
 def disconnect(uuid): webgui.request(UI_Code.UUID_DISCONNECT, uuid)
-
+@eel.expose
+def sync(uuid, local, remote): webgui.request(UI_Code.UUID_SYNC, uuid, local, remote)
 
 
 class WebGUI(UiFrontend):

@@ -29,10 +29,8 @@ class SyncQueue:
         
     def add_sync(self, *args, **kwargs):
         if ((args, kwargs)) not in self.queue:
-            if not self.running_event.is_set():
-                self.queue.append((args, kwargs))
-            else:
-                self.queue.append((args, kwargs))
+            self.queue.append((args, kwargs))
+            if self.running_event.is_set():
                 self.run_next()
             self.running_event.wait()
      
@@ -88,10 +86,10 @@ class Client(Socket):
         super().close()
         self.logger.info("Client socket closed")  
     
-    def conn_str(self):
+    def conn_str(self): # used for logging
         return f"{self.server_uuid} @ (hostname: {self.server_hostname}, port: {self.server_port})"
    
-    def sync_directories(self, local_dir, remote_dir, bi_directional_sync=True, time_out=None, auto_sync=0, add_to_queue=True):
+    def sync(self, local_dir, remote_dir, bi_directional_sync=True, time_out=None, auto_sync=0, add_to_queue=True):
         self.logger.debug(f"Add to queue: sync local directory '{local_dir}' with remote directory '{remote_dir}'")
         self.sync_queue.add_sync(local_dir, remote_dir, bi_directional_sync, time_out, auto_sync)
     
@@ -99,10 +97,10 @@ class Client(Socket):
         ...
         
     def _sync_directories(self):
-        ...
+        print("syncing...")
         
     
-    def  req_dir_list(self):
+    def req_dir_list(self):
         ...
         
     def req_dir_attributes(self, remote_dir:str):

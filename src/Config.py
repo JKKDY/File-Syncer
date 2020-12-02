@@ -26,6 +26,8 @@ AUTO_CONNECT_KEY = "auto_connect"
 
 AUTO_SYNC_KEY = "auto_sync"
 BI_DIRECTIONAL_KEY = "bidirectional"
+LOC_SYNC_IGN_KEY = "local_ignore"
+SYNCED_IGN_KEY = "synced_ignore"
 
 IGNORE_KEY = "ignore"
 HASH_KEY = "hash"
@@ -156,7 +158,9 @@ class ConnectionsList(JSON_File):
             self[uuid][SYNCS_KEY][local_dir] = {}
         self[uuid][SYNCS_KEY][local_dir][remote_dir] = {
             BI_DIRECTIONAL_KEY:bidirectional,
-            AUTO_SYNC_KEY: auto_sync
+            AUTO_SYNC_KEY: auto_sync,
+            LOC_SYNC_IGN_KEY: [],
+            SYNCED_IGN_KEY: []
         }
         
     def update(self, uuid, new_uuid=None, new_hostname=None, new_port=None, new_dir_info=None):
@@ -180,15 +184,15 @@ class DirectoriesList(JSON_File):
         self[str(path)] = {
             IGNORE_KEY: ignore_patterns,
             HASH_KEY: hash_word(path),
-            NICKNAME_KEY: name
+            NICKNAME_KEY: name if name != "" else path
         }
         
     def update(self, path, ignore_patterns, hash):
         self[str(path)][IGNORE_KEY] = ignore_patterns
         self[str(path)][HASH_KEY] = hash
         
-    # def directories(self):
-    #     return {str(path):directory[NICKNAME_KEY] for path, directory in self.items()}
+    def info(self):
+        return {str(path):directory[NICKNAME_KEY] for path, directory in self.items()}
             
        
         

@@ -1,3 +1,10 @@
+const STATUS_DISCONNECTED = 0;
+const STATUS_AVAILABLE = 1;
+const STATUS_CONNECTED = 2;
+const STATUS_PENDING = 3;
+const STATUS_FAILED = 4;
+
+
 
 // ####################
 //        OVERLAY
@@ -6,7 +13,6 @@ function overlay_on(){
     document.getElementById("overlay").style.display = ""
 }
 function overlay_off(){
-    console.log("sdjkkkkkkkfnsdkfsdf")
     for (const pop_up of document.getElementsByClassName("pop_up_window"))
         pop_up.style.display="none";
     document.getElementById("overlay").style.display = "none";
@@ -42,7 +48,6 @@ class Navbar{
         for (const link of document.querySelectorAll("nav a")){
             let page = link.getAttribute("href")
             this.nav_links[page] = link;
-            console.log(page)
             this.pages[page] = document.querySelector(page)
             $( page ).load("/pages/" + page.substring(1) + ".html")
         }
@@ -195,7 +200,7 @@ class Folder{
 
 (async function(){
     "use strict";   
-    document.getElementById("overlay").onclick = ()=>overlay_off() ;
+    document.getElementById("overlay").onclick = ()=>overlay_off();
     overlay_off();
 
     // first load resources, then navbar & pages! 
@@ -203,20 +208,24 @@ class Folder{
     window.data.connections = {};
     window.data.directories = {};
 
-    for (const uuid of await eel.get_uuids()()) {
-        let info = await eel.get_uuid_info(uuid)();
-        let status = await eel.get_uuid_status(uuid)();
-        window.data.connections[uuid] = new Connection(uuid, info, status);
-    };
 
-    for (const path of await eel.get_directories()()){
-        let info = await eel.get_dir_info(path)();
-        let graph = await eel.get_dir_graph(path)();
-        window.data.directories[path] = new Directory(path, info, graph);
-    };
+    try {
+        for (const uuid of await eel.get_uuids()()) {
+            let info = await eel.get_uuid_info(uuid)();
+            let status = await eel.get_uuid_status(uuid)();
+            window.data.connections[uuid] = new Connection(uuid, info, status);
+        };
+    
+        for (const path of await eel.get_directories()()){
+            let info = await eel.get_dir_info(path)();
+            let graph = await eel.get_dir_graph(path)();
+            window.data.directories[path] = new Directory(path, info, graph);
+        };
+    } finally {
+        // also run in live server
+        window.navbar = new Navbar(); 
+    }
 
-
-    window.navbar = new Navbar(); 
 })();
 
 

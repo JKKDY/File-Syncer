@@ -35,7 +35,8 @@ class FileSyncer(Config):
             UI_Code.REQ_DIR_GRAPH : self.get_directory_graph,
             UI_Code.ADD_CONNECTION : self.add_connection,
             UI_Code.UUID_CONNECT : self.connect,
-            UI_Code.UUID_DISCONNECT : self.disconnect
+            UI_Code.UUID_DISCONNECT : self.disconnect,
+            UI_Code.UUID_SYNC : self.sync
         })
         self.ui.start()
         
@@ -75,6 +76,8 @@ class FileSyncer(Config):
     def connect(self, uuid): return self.server.connect(uuid)
     
     def disconnect(self, uuid): self.server.close_connection(uuid)
+    
+    def sync(self, uuid, local, remote): self.server.clients[uuid].sync(local, remote)
         
         
     def update_uuid(self, old_uuid, new_uuid): self.ui.notify(UI_Code.UPDATE_UUID, old_uuid, new_uuid)

@@ -187,141 +187,127 @@
 
 #Syncs .sync_info{
     display: grid;
-    grid-template-rows: calc(1.5em + 2vh) calc(49vh - 1.5em - 2vh - 2*10px);
-    grid-template-columns: 1fr;
-    min-width: 0; 
-    min-height: 0;
-
-
+    grid-template-rows: calc(1.5em + 2vh) calc(49vh - 2 * 10px - 1.5em - 2vh); //height of div(49vh) - padding - header height
+    
+    
     .header{
         display: grid;
-        grid-template-columns: 1fr 2em 1fr;
+        grid-template-columns: repeat(4, max-content  ) 1fr repeat(3, max-content);
         align-items: center;
         justify-items: center;
-        >div{
-            grid-gap: 0.7vh;
-            display: grid;
-            grid-auto-rows: 1fr 1fr;
-            align-items: center;
-            justify-items: center;
-        }
-        .path{
-            color:$font_color2;
-            font-size: 14px;
-        }
-        .name{
-            font-weight: 500;
-        }
-        button{
-            font-size: 20px;
-            color: $accent_color1;
-            transition: all $trans_time ease 0s;
-            background-color: $secondary_color;
-            &:hover{color: $font-color1;}
-        }
-    }
+        border-bottom: 3px solid $color3;
+        font-weight: 500;
 
-    ::-webkit-scrollbar-track{
-        background: $secondary_color;
-    }
-
-    ::-webkit-scrollbar-thumb{
-        background: $color3;
-        border-radius: 3px;
-    }
-
-
-
-    .props_container{
-        display: grid;
-        grid-template-columns: 1fr 1.4fr;
-        grid-template-rows: 1fr 2fr;
-        margin: 0 0.5vw;
-        margin-top: 1.5vh;
-        border-top: 2px solid $color3;
-        padding-top: 1.5vh;
-        
-    }
-
-    .properties{
-        padding-top: 0.5vh;
-        padding-left: 1vw;
-        padding-right: 2vw;
-        display: grid;
-        grid-auto-rows: calc(1em + 1.8vh);
-        grid-template-columns: max-content 1fr;
-        .key{
+        >span{
+            font-size: 16px;
+            padding: 0 2px;
+            margin: 0 1vw;
             color: $font_color2;
-        }
-        .value{
-            justify-self: right;
-        }
-    }
-
-    .conflicts{
-        grid-column: 1;
-        grid-row: 2;
-    }
-    
-    .ignore{
-        max-height: calc(100% - 1vh);
-        grid-column: 2;
-        grid-row: 1/3;
-        border-left: 2px solid $color3;
-        margin: 0.5vh 0;
-        padding-left: 2vw;
-        display: grid;
-        grid-template-rows: calc(1em + 2.5vh) ;
-        
-        .ign_header .active{
-            color: $accent_color1;
-            border-bottom: 2px solid $accent_color4;
-        }
-
-        .ign_header button{
-            float: right;
-            height: calc(1em + 1vh);
-            width: calc(1em + 1vh)
-        }
-
-        .ign_header span{
-            margin-right: 2vw;
-            padding-bottom: 5px;
             transition: all $trans_time ease 0s;
+            padding-bottom: 3px;
             cursor: pointer;
-
             &:hover{
                 color: $accent_color1;
                 border-bottom: 2px solid $accent_color4;
             }
         }
 
-        .ign_lst{ 
-            // min-width: 0;
-            // min-height: 0;
-            // height: 50%;
-            overflow-y:scroll;
-            display: grid;
-            grid-auto-rows: calc(1.5em + 1vh);
-            padding-left: 1.6vw;
-            >span{
-                display: inline-block;
-                vertical-align: middle;
-                font-size: 15px;
-                &:before{
-                    content: "•";
-                    vertical-align: middle;
-                    font-size: 20px;
-                    color: $accent_color3;
-                    padding-right: 6px;
-                }
-            }
-
+        >span.active{
+            color: $accent_color1;
+            border-bottom: 2px solid $accent_color4;
         }
 
-        .ign_lst.active{
+        button{
+            padding: 0 1vw;
+            font-size: 17px;
+            font-weight: 500;
+            background-color: $secondary_color;
+            color: $font_color2;
+            i{transition: all $trans_time ease 0s;}
+            &:hover{
+                i{color: $font_color1;}
+            }
+        }
 
+        #sync_btn{
+            color: $accent_color1;
+            &:hover{color: $accent_color1;}
+        }
+
+        #delete_btn{
+            color: $color_negative;
+        }
+    }
+
+
+
+
+    #props_container{
+        padding-top: 1vh;
+        padding-left: 0.5vw;
+        padding-right: 0.5vw;
+        min-width: 0;
+        min-height: 0;
+        &>div{
+            display: none;
+            max-height: 100%;
+        }
+
+        &>div.active{
+            display: grid;
+        }
+
+        ::-webkit-scrollbar-track{
+            background: $secondary_color;
+        }
+    
+        ::-webkit-scrollbar-thumb{
+            background: $color3;
+            border-radius: 3px;
+        }
+    }
+
+    #info_container{
+        grid-auto-rows: calc(1em + 2vh);
+        align-items: center;
+        font-size: 16px;
+        font-weight: 400;
+        grid-template-columns: max-content 1fr;
+        .key{
+            grid-column: 1;
+            color: $font_color2;
+            padding-right: 3vw;
+        }     
+        .value{
+            grid-column: 2;
+            .name{padding-right: 1vw;}
+            .path{color: $font_color3;}
+        }
+    }
+
+    #loc_ign_container, #sync_ign_container{
+        overflow-y:scroll;
+        display: grid;
+        grid-auto-rows: calc(1.5em + 1vh);
+        padding-left: 1.6vw;
+        min-width: 0;
+        min-height: 0;
+        span{
+            display: inline-block;
+            vertical-align: middle;
+            font-size: 14px;
+            font-weight: 500;
+            &:before{ 
+                content: "•";
+                vertical-align: middle;
+                font-size: 20px;
+                color: $accent_color3;
+                padding-right: 1vw;
+            }
         }
     }
 }
+
+
+
 
