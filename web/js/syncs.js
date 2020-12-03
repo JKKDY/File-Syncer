@@ -7,29 +7,32 @@ class ConnectionSelection{
         this.sync_container = document.getElementById("sync_list_container")
         this.list = document.getElementById("conn_list");
         this.active = undefined;
+        this.connections = {};
     }
 
     add(uuid, conn){
-        let div = document.createElement("div");
-        div.id = uuid;
-        div.onclick = ()=>{
+        let connection = {};
+        connection.div = document.createElement("div");
+        connection.div.id = uuid;
+        connection.div.onclick = ()=>{
             if (this.active) this.active.classList.remove("active");
-            this.active = div;
-            this.active.classList.add("active")
-            this.sync_container.innerHTML = ""
-            this.sync_container.appendChild(window.syncs.sync_selections[uuid].list_div)
+            this.active = connection.div;
+            this.active.classList.add("active");
+            this.sync_container.innerHTML = "";
+            this.sync_container.appendChild(window.syncs.sync_selections[uuid].list_div);
         }
 
-        let i = document.createElement("i");
-        if (conn.status === STATUS_CONNECTED) i.className = "far fa-check-circle";
-        else if (conn.status === STATUS_DISCONNECTED) i.className = "far fa-times-circle";
+        connection.i = document.createElement("i");
+        connection.change_status = (status)=>{ connection.i.className = connection_status_icon(status) };
+        connection.change_status(conn.status);
 
-        let span = document.createElement("span");
-        span.innerHTML = conn.name;
+        connection.span = document.createElement("span");
+        connection.span.innerHTML = conn.name;
 
-        div.appendChild(i);
-        div.appendChild(span);
-        this.list.appendChild(div);
+        connection.div.appendChild(connection.i);
+        connection.div.appendChild(connection.span);
+        this.list.appendChild(connection.div);
+        this.connections[uuid] = connection;
     }
 }
 
@@ -141,14 +144,17 @@ class PropetiesDisplay{
     display_container(selector, container){
         if (this.active.selector) this.active.selector.classList.remove("active");
         if (this.active.container) this.active.container.classList.remove("active");
-        this.active.selector = selector;
-        this.active.container = container.div;
-        this.active.selector.classList.add("active");
-        this.active.container.classList.add("active");
+        if (this.is_set){
+            this.active.selector = selector;
+            this.active.container = container.div;
+            this.active.selector.classList.add("active");
+            this.active.container.classList.add("active");
+        }
     }
 
     set(uuid, local, remote){
-        if (!this.active.selector && !this.active.container) {}
+        this.is_set = true;
+        // if (!this.active.selector && !this.active.container) {}
         this.display_container(document.getElementById("info_selector"), this.sync_info)
         this.sync_info.set(uuid, local, remote);
         this.local_ignore_info.set(uuid, local, remote);
@@ -253,4 +259,9 @@ class ConflictsInfo extends Container{
         window.syncs.sync_selections[uuid] = new SyncSelection(conn);
     }
 
+    window.callbacks.status_change.add((uuid, status)=>{
+        window.syncs.conn_selection.connections[uuid].change_status(status)
+    })
 })();
+
+

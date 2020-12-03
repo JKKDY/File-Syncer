@@ -1,8 +1,46 @@
+// ####################
+//  CONNECTION STATUS
+// ####################
+
 const STATUS_DISCONNECTED = 0;
 const STATUS_AVAILABLE = 1;
 const STATUS_CONNECTED = 2;
 const STATUS_PENDING = 3;
 const STATUS_FAILED = 4;
+
+
+function connection_status_icon(status){
+    switch(status){
+        case STATUS_DISCONNECTED:
+            return "far fa-times-circle";
+        case STATUS_AVAILABLE:
+            return "fas fa-signal"
+        case STATUS_CONNECTED:
+            return "far fa-check-circle"
+        case STATUS_PENDING:
+            return "fas fa-spinner" 
+        case STATUS_FAILED:
+            return "fas fa-times";
+    }
+}
+
+
+function connection_status_str(status){
+    switch(status){
+        case STATUS_DISCONNECTED:
+            return "Offline";
+        case STATUS_AVAILABLE:
+            return "Online"
+        case STATUS_CONNECTED:
+            return "Connected"
+        case STATUS_PENDING:
+            return "Connecting.."
+        case STATUS_FAILED:
+            return "Connection Failed";
+    }
+}
+
+
 
 
 
@@ -193,6 +231,28 @@ class Folder{
 
 
 
+// ####################
+//       Callback
+// ####################
+
+class Callbacks{
+    constructor(){
+        this.callbacks = [];
+    }
+
+    add(fkt){
+        this.callbacks.push(fkt)
+    }
+
+    call(...args){
+        for (const callback of this.callbacks){
+            callback(...args)
+        } 
+    }
+}
+
+
+
 
 // ####################
 //        MAIN
@@ -207,6 +267,7 @@ class Folder{
     window.data = {};
     window.data.connections = {};
     window.data.directories = {};
+    window.callbacks = {};
 
 
     try {
@@ -221,6 +282,9 @@ class Folder{
             let graph = await eel.get_dir_graph(path)();
             window.data.directories[path] = new Directory(path, info, graph);
         };
+
+        window.callbacks.status_change = new Callbacks()
+        window.callbacks.uuid_change = new Callbacks()
     } finally {
         // also run in live server
         window.navbar = new Navbar(); 
@@ -228,4 +292,17 @@ class Folder{
 
 })();
 
+
+// ###################
+//  EXPOSED FUNCTIONS
+// ###################
+eel.expose(update_status)
+function update_status(uuid, status){
+    window.callbacks.status_change.call(uuid, status)
+}
+
+eel.expose(update_uuid)
+function update_uuid(old_uuid, new_uuid){   
+    window.callbacks.uuid_change.call(old_uuid, new_uuid)
+}
 

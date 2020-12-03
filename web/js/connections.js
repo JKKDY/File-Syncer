@@ -10,28 +10,8 @@ function update_status_span(span, status){
     span.innerHTML = "";
     let icon = document.createElement("i");
     span.appendChild(icon);
-    switch(status){
-        case STATUS_DISCONNECTED:
-            icon.className = "far fa-times-circle";
-            span.innerHTML += "Offline";
-            break;
-        case STATUS_AVAILABLE:
-            icon.className = "fas fa-signal"
-            span.innerHTML += "Online"
-            break;
-        case STATUS_CONNECTED:
-            icon.className = "far fa-check-circle"
-            span.innerHTML += "Connected"
-            break;
-        case STATUS_PENDING:
-            icon.className = "fas fa-spinner" 
-            span.innerHTML += "Connecting.."
-            break;
-        case STATUS_FAILED:
-            icon.className = "fas fa-times";
-            span.innerHTML += "Connection Failed";
-            break;
-    }
+    icon.className = connection_status_icon(status);
+    span.innerHTML += connection_status_str(status);
 }
 
 
@@ -66,7 +46,7 @@ class NewConnectionWindow{
             this.hostname_input.value, 
             parseInt(this.port_input.value), 
             this.name_input.value)()
-        await new_connection(uuid, conn_selection)
+        await new_connection(uuid, selection)
         overlay_off()
     }
 }
@@ -87,7 +67,7 @@ class DeleteConnWindow {
         this.connection_name.innerHTML = name;
         this.delete_btn.onclick = function(){
             window.connections.info_display.clear();
-            window.connections.conn_selection.remove(uuid);
+            window.connections.selection.remove(uuid);
             overlay_off();
         }
     }
@@ -172,8 +152,9 @@ class ConnectionInfoDisplay{
 
 class ConnectionRow{
     constructor(uuid){
-        this.uuid = uuid
-        this.active = false
+        this.uuid = uuid;
+        this.active = false;
+        this.display = window.connections.info_display;
 
         this.row = document.createElement("div")
         this.row.id = uuid
@@ -185,7 +166,6 @@ class ConnectionRow{
 
         this.name_col = document.createElement("span")
         this.name_col.innerHTML = window.data.connections[uuid].name
-        console.log(window.data.connections[uuid].name)
 
         this.status_col = document.createElement("span")
         this.status_col.className = "tb_status"
@@ -196,7 +176,7 @@ class ConnectionRow{
             event.stopPropagation()
             await window.connections.info_display.display(this)
             if (this.status === STATUS_DISCONNECTED){
-                this.update_status_span(STATUS_PENDING)
+                this.update_status(STATUS_PENDING)
                 await eel.connect(this.uuid)
             }else if (this.status === STATUS_CONNECTED){
                 await eel.disconnect(this.uuid)()
@@ -217,16 +197,18 @@ class ConnectionRow{
         this.update_status(window.data.connections[uuid].status)
     }
 
-
-    // update_status_span(status){
-    //     update_status_span(this.status_col, status)
-    //     if (this.uuid === window..active) update_status_span(info_display.status_span, status)
-    // }
-
     update_status(status){
         this.status = status
-        // this.update_status_span(status)
+
+        //update status in info display if active
+        if (this.display.active && this.display.active.uuid === this.uuid){
+            update_status_span(window.connections.info_display.status_span, status)
+        }
+
+        // update status logo/string
         update_status_span(this.status_col, status)
+
+        // update nt_btn (button for connecting/disconnecting)
         switch(status){
             case STATUS_DISCONNECTED:
                 this.nt_btn.className = "fas fa-check nt_btn tb_btn"
@@ -301,18 +283,22 @@ class Selection{
 
     window.connections = {};
     window.connections.info_display = new ConnectionInfoDisplay();
-    window.connections.conn_selection =  new Selection("connections_selection");
+    window.connections.selection =  new Selection("connections_selection");
     window.connections.req_selection = new Selection("requests_selection");
 
     window.connections.new_conn_window = new NewConnectionWindow();
     window.connections.delete_conn_window = new DeleteConnWindow();
     
     for (const [uuid, conn] of Object.entries(window.data.connections)){
-        window.connections.conn_selection.add(uuid, new ConnectionRow(uuid))
+        window.connections.selection.add(uuid, new ConnectionRow(uuid))
     }
 
     document.getElementById("new_connection").onclick = ()=> window.connections.new_conn_window.display()
 
+
+    window.callbacks.status_change.add((uuid, status)=>{
+        window.connections.selection.rows[uuid].update_status(status)
+    })
 })();
 
 
@@ -324,20 +310,20 @@ class Selection{
 // ###################
 //  EXPOSED FUNCTIONS
 // ###################
-eel.expose(update_status)
-function update_status(uuid, status){
-    console.log(status)
-    connections[uuid].update_status(status)
-}
+// eel.expose(update_status)
+// function update_status(uuid, status){
+//     console.log(status)
+//     connections[uuid].update_status(status)
+// }
 
-eel.expose(update_uuid)
-function update_uuid(old_uuid, new_uuid){
-    if (old_uuid === new_uuid) return // otherwise connection will be deleted 
-    console.log(new_uuid)
-    connections[new_uuid] = connections[old_uuid]
-    connections[new_uuid].uuid = new_uuid
-    delete connections[old_uuid]
-}
+// eel.expose(update_uuid)
+// function update_uuid(old_uuid, new_uuid){
+//     if (old_uuid === new_uuid) return // otherwise connection will be deleted 
+//     console.log(new_uuid)
+//     connections[new_uuid] = connections[old_uuid]
+//     connections[new_uuid].uuid = new_uuid
+//     delete connections[old_uuid]
+// }
 
 
 // Note: this python error message means some error happend in an exposed javascript function
