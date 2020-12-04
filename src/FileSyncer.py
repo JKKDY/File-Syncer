@@ -19,11 +19,11 @@ class FileSyncer(Config):
         self.sessions = Sessions(self.data_path/"sessions.json")
         self.uuid = get_uuid(self.data_path)
         
-        self.file_tracker = FileTracker(self.directories, self.logging_settings, self.data_path)
+        self.file_tracker = FileTracker(self.directories, self.logging_settings, self.data_path, self.update_directory_graph)
         
-        callbacks = Callbacks(self.update_uuid, self.update_status)
+        server_callbacks = Callbacks(self.update_uuid, self.update_status)
         self.server = Server(self.hostname, self.ip, self.port, self.uuid, self.file_tracker, self.sessions, \
-            self.connections, self.directories, self.logging_settings, callbacks)
+            self.connections, self.directories, self.logging_settings, server_callbacks)
         self.server_thread = Thread(target=self.server.start_server, name = "server_thread")   
         
         self.ui = UiBackend(self.ui_port, {
@@ -77,13 +77,13 @@ class FileSyncer(Config):
     
     def disconnect(self, uuid): self.server.close_connection(uuid)
     
-    def sync(self, uuid, local, remote): 
-        print(uuid)
-        self.server.clients[uuid].sync(local, remote)
+    def sync(self, uuid, local, remote): self.server.clients[uuid].sync(local, remote)
         
-        
+    
     def update_uuid(self, old_uuid, new_uuid): self.ui.notify(UI_Code.UPDATE_UUID, old_uuid, new_uuid)
         
-    def update_status(self, uuid): self.ui.notify(UI_Code.UPDATE_STATUS, uuid, self.get_uuid_status(uuid))
+    def update_status(self, uuid): self.ui.notify(UI_Code.UPDATE_STATUS, uuid, self.get_uuid_status(uuid)) 
+    
+    def update_directory_graph(self, directory): self.ui.notify(UI_Code.UPDATE_DIR_GRAPH, directory, self.file_tracker[directory].to_dict())
 
     

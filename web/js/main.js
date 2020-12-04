@@ -141,8 +141,7 @@ class Directory{
         this.root = this.graph.div
     }
 
-    async update_graph(){
-        let graph = await eel.get_dir_graph(this.path)(); 
+    async update_graph(graph){
         this.graph.update(graph)
     }
 }
@@ -285,12 +284,19 @@ class Callbacks{
 
         window.callbacks.status_change = new Callbacks()
         window.callbacks.uuid_change = new Callbacks()
+        window.callbacks.directory_graph_update = new Callbacks()
+
+        window.callbacks.directory_graph_update.add((path, graph) => {
+            console.log(path)
+            console.log(window.data.directories[path])
+            window.data.directories[path].update_graph(graph)
+        })
     } finally {
-        // also run in live server
-        window.navbar = new Navbar(); 
+        window.navbar = new Navbar(); // try/finally is used so this also runs in live server
     }
 
 })();
+
 
 
 // ###################
@@ -306,3 +312,7 @@ function update_uuid(old_uuid, new_uuid){
     window.callbacks.uuid_change.call(old_uuid, new_uuid)
 }
 
+eel.expose(update_directory_graph)
+function update_directory_graph(path, directory_graph){
+    window.callbacks.directory_graph_update.call(path, directory_graph)
+}

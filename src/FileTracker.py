@@ -81,7 +81,7 @@ class File(DirectoryElement):
    
 # Pröblem:
 # Update is slow with big directories
-# implement multithreading: on start one thread per directory
+# implement multithreading: on init one thread per directory
 # when updating check (sub) folder size and depth and use a dedicated thread if it reaches a certain threshold         
     
 class Folder(DirectoryElement):
@@ -200,12 +200,13 @@ class Folder(DirectoryElement):
 
 
 class Directory():
-    def __init__(self, path:Path, save_folder:Path, ignore, logging_settings):
+    def __init__(self, path:Path, save_folder:Path, ignore, logging_settings, update_callback):
         self.path = path  # location of the directory on disk
         self.hash = hash_word(self.path)
         self.save_file = save_folder / self.hash  # file where directory Graph is stored
         self.ignore_patterns = ignore
         self.logger = logging_settings.create_logger(f"{logger_name}.{self.hash}", f"{self.hash}.log")
+        self.update_callback = update_callback
         
         if self.save_file.exists():
             self.root = pickle.loads(self.save_file.read_bytes())
@@ -214,8 +215,9 @@ class Directory():
             self.root = Folder(Path(), self.path, self.is_in_ignore)
         self.save()
         
-    def update(self):
+    def update(self, callback=False):
         self.root.update()
+        if callback: self.update_callback(str(self.path))
         
     def save(self):
         self.save_file.write_bytes(pickle.dumps(self.root))
@@ -236,21 +238,22 @@ class Directory():
     
 class FileTracker:
     """Stores tracked/manages tracked directories"""
-    def __init__ (self, directories, logging_settings, data_path):
+    def __init__ (self, directories, logging_settings, data_path, update_callback):
         logger.info("Filetracker online")
         self.directories_list = directories
         self.logging_settings = logging_settings
         self.save_path = data_path
+        self.update_callback = update_callback
     
         self.directories = {}
         for dir_path, dir_props in self.directories_list.items():
-            self.directories[dir_path] = Directory(Path(dir_path), self.save_path, dir_props[IGNORE_KEY], self.logging_settings)
+            self.directories[dir_path] = Directory(Path(dir_path), self.save_path, dir_props[IGNORE_KEY], self.logging_settings, update_callback)
 
 
     def add_directory(self, path:Path,  name:str, ignore_patterns:list) -> None:
         if path in self.directories: raise Exception(f"Already tracking {path}")
         
-        self.directories[path] = Directory(path, self.save_path, ignore_patterns, self.logging_settings)
+        self.directories[path] = Directory(path, self.save_path, ignore_patterns, self.logging_settings, self.update_callback)
         self.directories_list.new_directory(path, name, ignore_patterns)
         
         logger.info(f"Tracking directory {path}") 
@@ -270,3 +273,5 @@ class FileTracker:
     def __getitem__(self, path:os.PathLike):
         return self.directories[str(path)]   
 
+    def __iter__(self):
+        return iter(self.directories)   

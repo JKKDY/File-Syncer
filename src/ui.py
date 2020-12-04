@@ -25,6 +25,7 @@ class UI_Code(IntEnum):
     
     UPDATE_UUID = auto()
     UPDATE_STATUS = auto()
+    UPDATE_DIR_GRAPH = auto()
     
     ADD_CONNECTION = auto()
     UUID_CONNECT = auto()

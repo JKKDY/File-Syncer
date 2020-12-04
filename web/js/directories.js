@@ -31,6 +31,7 @@ class DirectorySelection{
         })
 
         edit_btn.addEventListener("click", ()=>{
+
         })
     }
 }
@@ -80,4 +81,10 @@ class DirectoryInfo{
     for (const [dir_path, dir] of Object.entries(window.data.directories)){
         window.directories.selection.add_dir(dir_path)
     }
+
+    window.callbacks.directory_graph_update.add((directory)=>{
+        if (window.directories.selection.active === directory){
+            window.directories.info_display.display(directory)
+        }
+    })
 })();

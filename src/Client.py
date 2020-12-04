@@ -111,7 +111,7 @@ class Client(Socket):
         self.sync_queue.add_sync(local_dir, remote_dir, bi_directional_sync, time_out)
     
     def resolve_conflict(self, local_folder, remote_folder, path, is_dir):
-        print("AAAAAAAAAAAAAA conflict")
+        print(f"Conflict: \n local folder: {local_folder} \n remote_folder: {remote_folder} \n path: {path}")
         
     def _sync_directories(self, local_dir, remote_dir, bi_directional_sync, time_out):
         self.logger.info(f"Now syncing local directory '{local_dir}' with remote directory '{remote_dir}'")
@@ -141,7 +141,7 @@ class Client(Socket):
                     self.logger.info(f"Delete folder '{folder.location()}' in '{local_dir}'")
         create(local_graph)
         
-        self.file_tracker[local_dir].update()
+        self.file_tracker[local_dir].update(callback=True)
         
         if bi_directional_sync:
             self.send_code(NT_Code.REQ_SYNC)
