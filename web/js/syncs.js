@@ -116,9 +116,12 @@ class PropetiesDisplay{
     constructor(){
         this.container = document.getElementById("props_container");
         this.active = {};
+        this.local = undefined;
+        this.remote = undefined;
+        this.uuid = undefined
 
         this.sync_btn = document.getElementById("sync_btn");
-        this.sync_btn.onclick = ()=>{ eel.sync(this.uuid, local, remote) };
+        this.sync_btn.onclick = ()=>{ eel.sync(this.uuid, this.local, this.remote) };
         
         this.sync_info = new SyncInfo();
         document.getElementById("info_selector").onclick = (event)=>{
@@ -154,6 +157,9 @@ class PropetiesDisplay{
 
     set(uuid, local, remote){
         this.is_set = true;
+        this.remote = remote;
+        this.local = local;
+        this.uuid = uuid;
         // if (!this.active.selector && !this.active.container) {}
         this.display_container(document.getElementById("info_selector"), this.sync_info)
         this.sync_info.set(uuid, local, remote);

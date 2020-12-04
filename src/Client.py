@@ -1,7 +1,6 @@
 import datetime
 import logging
 import os
-import pickle
 import select
 import shutil
 import socket
@@ -88,26 +87,73 @@ class Client(Socket):
     
     def conn_str(self): # used for logging
         return f"{self.server_uuid} @ (hostname: {self.server_hostname}, port: {self.server_port})"
-   
-    def sync(self, local_dir, remote_dir, bi_directional_sync=True, time_out=None, auto_sync=0, add_to_queue=True):
-        self.logger.debug(f"Add to queue: sync local directory '{local_dir}' with remote directory '{remote_dir}'")
-        self.sync_queue.add_sync(local_dir, remote_dir, bi_directional_sync, time_out, auto_sync)
-    
-    def resolve_conflict(self, local_folder, remote_folder, path, is_dir):
-        ...
-        
-    def _sync_directories(self):
-        print("syncing...")
-        
-    
-    def req_dir_list(self):
-        ...
-        
-    def req_dir_attributes(self, remote_dir:str):
-        ...
+       
+    def req_dir_list(self): # is not used anywhere?
+        self.send_code(NT_Code.REQ_DIR_LST)
+        self.logger.debug(f"Receive directory list")
+        return self.recv_obj()        
         
     def req_file(self, remote_dir:str, remote_file:str, local_dir:str, local_file:str):
-        ...
+        self.send_code(NT_Code.REQ_FILE)
+        self.send_str(remote_dir)
+        self.send_str(remote_file)
+        self.recv_file(os.path.join(local_dir, local_file))
+        self.logger.info(f"Download file '{local_file}' in '{local_dir}'")
     
     def req_dir_graph(self, remote_dir):
-        ...
+        self.send_code(NT_Code.REQ_DIR_GRAPH)
+        self.send_str(remote_dir)
+        self.logger.debug(f"Receive directory graph")
+        return self.recv_obj()    
+    
+    def sync(self, local_dir, remote_dir, bi_directional_sync=True, time_out=None, add_to_queue=True):
+        self.logger.debug(f"Add to queue: sync local directory '{local_dir}' with remote directory '{remote_dir}'")
+        self.sync_queue.add_sync(local_dir, remote_dir, bi_directional_sync, time_out)
+    
+    def resolve_conflict(self, local_folder, remote_folder, path, is_dir):
+        print("AAAAAAAAAAAAAA conflict")
+        
+    def _sync_directories(self, local_dir, remote_dir, bi_directional_sync, time_out):
+        self.logger.info(f"Now syncing local directory '{local_dir}' with remote directory '{remote_dir}'")
+
+        self.file_tracker[local_dir].update()
+        local_graph = copy.deepcopy(self.file_tracker[local_dir].root)
+        remote_graph = self.req_dir_graph(remote_dir)
+        last_sync_time = self.sessions.last_sync(self.server_uuid, local_dir, remote_dir)
+        
+        local_graph.merge(remote_graph, last_sync_time, self.resolve_conflict)
+        
+        def create(graph): # graph = merged graph; this is how the directory being synced should look like
+            for file in graph.files.values():
+                if file.exists and (not file.full_path.exists() or hash_file(file.full_path) != file.hash):
+                    self.req_file(remote_dir, file.location(), local_dir, file.location())
+                elif not file.exists and file.full_path.exists():
+                    file.full_path.unlink()
+                    self.logger.info(f"Delete file '{file.location()}' in '{local_dir}'")
+            for folder in graph.folders.values():
+                if folder.exists:
+                    if not folder.full_path.exists():
+                        folder.full_path.mkdir()
+                        self.logger.info(f"Created folder '{folder.location()}' in '{local_dir}'")
+                    create(folder)
+                elif folder.full_path.exists():
+                    shutil.rmtree(folder.full_path)
+                    self.logger.info(f"Delete folder '{folder.location()}' in '{local_dir}'")
+        create(local_graph)
+        
+        self.file_tracker[local_dir].update()
+        
+        if bi_directional_sync:
+            self.send_code(NT_Code.REQ_SYNC)
+            self.send_str(remote_dir)
+            self.send_str(local_dir)
+            # self.send_obj(time_out)
+            
+        self.sessions.add_sync(self.server_uuid, local_dir, remote_dir)
+        self.logger.info("Sync Done")  
+                        
+                        
+
+
+
+

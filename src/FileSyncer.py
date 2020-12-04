@@ -77,7 +77,9 @@ class FileSyncer(Config):
     
     def disconnect(self, uuid): self.server.close_connection(uuid)
     
-    def sync(self, uuid, local, remote): self.server.clients[uuid].sync(local, remote)
+    def sync(self, uuid, local, remote): 
+        print(uuid)
+        self.server.clients[uuid].sync(local, remote)
         
         
     def update_uuid(self, old_uuid, new_uuid): self.ui.notify(UI_Code.UPDATE_UUID, old_uuid, new_uuid)

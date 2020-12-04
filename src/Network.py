@@ -69,7 +69,7 @@ class Socket:
         self._send(NT_MSG_TYPE.INT, num.to_bytes(ceil(log2(num)/8), byteorder='big'))
 
     def send_str(self, msg:str):
-        self._send(NT_MSG_TYPE.STR, bytes(msg, ENCODING))
+        self._send(NT_MSG_TYPE.STR, bytes(str(msg), ENCODING))
         
     def send_obj(self, obj, pickle_obj=True):
         if pickle_obj: obj = pickle.dumps(obj)
@@ -150,8 +150,5 @@ class Socket:
            if data == NT_Code.END_MSG: break
            else: ret.append(data)
         return ret
-            
-        
-    
-        
+
     

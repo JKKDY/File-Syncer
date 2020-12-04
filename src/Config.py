@@ -152,6 +152,11 @@ class ConnectionsList(JSON_File):
             AUTO_CONNECT_KEY: auto_connect
         }, self, self.auto_save)
         return uuid
+    
+    def has_sync(self, uuid, local_dir, remote_dir):
+        if local_dir in self[uuid][SYNCS_KEY] and remote_dir in self[uuid][SYNCS_KEY][local_dir]: 
+            return True
+        else: return False
      
     def add_sync(self, uuid, local_dir, remote_dir, auto_sync=-1, bidirectional=True):
         if local_dir not in self[uuid][SYNCS_KEY]:
@@ -214,13 +219,13 @@ class Sessions(JSON_File):
             self[uuid][0][SESS_SYNCED_KEY][local_dir][remote_dir].insert(0, now().strftime(DATE_TIME_FORMAT))
         except KeyError: # first time remote_dir and local_dir are syncing
             update_with_nested_dict([SESS_SYNCED_KEY, local_dir, remote_dir], self[uuid][0])
-            self[uuid][0][SESS_SYNCED_KEY][local_dir][remote_dir] = now().strftime(DATE_TIME_FORMAT)
+            self[uuid][0][SESS_SYNCED_KEY][local_dir][remote_dir] = [now().strftime(DATE_TIME_FORMAT)]
         self.save() # list wont trigger auto_save
                
     def last_sync(self, uuid, local_dir, remote_dir):
         for session in self[uuid]:
             try: 
-                return datetime.strptime(session[uuid][SESS_SYNCED_KEY][local_dir][remote_dir][0], DATE_TIME_FORMAT)
+                return datetime.strptime(session[SESS_SYNCED_KEY][local_dir][remote_dir][0], DATE_TIME_FORMAT)
             except (KeyError, ValueError):
                 pass
         return DEFAULT_TIME
@@ -233,7 +238,7 @@ class Config(JSON_File):
     class LoggingSettings:
         def __init__(self, logs_path:Path):
             self.logs_path = logs_path
-            self.logging_level = logging.INFO
+            self.logging_level = logging.DEBUG #logging.INFO
             
             #TODO add filter such that FS_root is not eliminated from logger names in log files, see:https://stackoverflow.com/questions/46954855/python-logging-format-how-to-print-only-the-last-part-of-logger-name
             self.formater = logging.Formatter("[{asctime}] [{levelname:<6}] {name} : {message}", style="{")

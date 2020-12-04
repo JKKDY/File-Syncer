@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 
 from src.FileTracker import FileTracker
-from src.Config import get_logger, temp_uuid, DATE_TIME_FORMAT, PORT_KEY, HOSTNAME_KEY
+from src.Config import get_logger, temp_uuid, DATE_TIME_FORMAT, PORT_KEY, HOSTNAME_KEY, SYNCS_KEY
 from src.Client import Client
 from src.Network import Socket, NT_Code, NT_MSG_TYPE
 
@@ -114,7 +114,6 @@ class Server():
                 code = conn.recv_code()
                 {
                     NT_Code.REQ_DIR_LST  : self.fetch_dir_list,
-                    NT_Code.REQ_DIR_ATTR : self.fetch_dir_attrib,
                     NT_Code.REQ_DIR_GRAPH: self.fetch_dir_graph,
                     NT_Code.REQ_FILE     : self.fetch_file,
                     NT_Code.REQ_SYNC     : self.sync_dir,
@@ -146,24 +145,36 @@ class Server():
             self.client_threads.pop(uuid).join()
             
         self.socket.close()
-        
-            
-            
+             
             
     def fetch_dir_list(self, uuid, conn):
-        ...
-        
-    def fetch_dir_attrib(self, uuid, conn):
-        ...
+        conn.send_obj(list(self.file_tracker.directories_list))
+        self.clients[uuid].logger.debug(f"Send directory list to {uuid}")
         
     def fetch_dir_graph(self, uuid, conn):
-        ...
+        directory = conn.recv_str()
+        self.file_tracker[directory].update()
+        conn.send_obj(self.file_tracker[directory].root)
+        self.clients[uuid].logger.debug(f"Send directory graph to {uuid}")
         
     def fetch_file(self, uuid, conn):
-        ...
+        directory = conn.recv_str()
+        file = conn.recv_str()
+        if not self.file_tracker[directory].is_in_ignore(file): #little saftey precaution
+            conn.send_file(os.path.join(directory, file))
+            self.clients[uuid].logger.debug(f"Send directory changes to {uuid}")
         
     def sync_dir(self, uuid, conn):
-        ...    
+        local_dir = conn.recv_str()
+        remote_dir = conn.recv_str()
+        
+        if not self.connections.has_sync(uuid, local_dir, remote_dir):
+            self.connections.add_sync(uuid, local_dir, remote_dir)
+            
+        self.clients[uuid].sync(local_dir, remote_dir, False)
+        
+        
+    
     
         
         

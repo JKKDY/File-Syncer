@@ -71,7 +71,7 @@ class File(DirectoryElement):
                 self.hash = new_hash
                 
         def is_modified(self, time) -> bool:
-            """ returns boolean value weather file has been modified during the time span between now and *time*"""
+            """ returns boolean value wether file has been modified during the time span between now and *time*"""
             if self.full_path.exists():
                 return max(datetime.datetime.utcfromtimestamp(self.full_path.stat().st_mtime), self._created) > time
             else: 
