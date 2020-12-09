@@ -10,6 +10,12 @@ logger_name, logger = get_logger(__name__)
 
 
 
+# TODO: add encryption (diffie-hellman, RSA ...)
+# TODO: sync optimization; check if files have been moved/renamed etc
+# TODO: directory update optimization; use multithreading
+# TODO: rotating filehandler for logger
+
+
 class FileSyncer(Config):
     def __init__(self, config_path:Path):
         super().__init__(config_path)

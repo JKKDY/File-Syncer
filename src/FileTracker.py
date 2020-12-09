@@ -5,6 +5,8 @@ import logging
 import os
 import pickle
 import time
+import glob
+from threading import Thread
 from hashlib import sha1
 from pathlib import Path
 
@@ -56,7 +58,7 @@ class DirectoryElement:
     
     
     
-    
+from imohash import hashfile
     
 class File(DirectoryElement):
         def __init__(self, rel_path, dir_path, update_on_creation=True):
@@ -67,7 +69,7 @@ class File(DirectoryElement):
         def update(self):
             if not self.exists: self.created()
             # update hash if file has been modified since last update
-            if (new_hash := hash_file(self.full_path)) != self.hash:
+            if (new_hash := hashfile(self.full_path)) != self.hash:
                 self.hash = new_hash
                 
         def is_modified(self, time) -> bool:
@@ -85,13 +87,19 @@ class File(DirectoryElement):
 # when updating check (sub) folder size and depth and use a dedicated thread if it reaches a certain threshold         
     
 class Folder(DirectoryElement):
-    def __init__(self, rel_path:Path, dir_path:Path, in_ignore_fkt, update_on_creation=True):
+    def __init__(self, rel_path:Path, dir_path:Path, ign_ptn, update_on_creation=True):
         super().__init__(rel_path, dir_path)
-        self.is_in_ignore = in_ignore_fkt
+        self.ignore_patterns = ign_ptn
         self.folders = {}
         self.files = {}
         if update_on_creation: self.update()
-        
+    
+    def is_in_ignore(self, path:Path, is_file=None) -> bool:  # is_file currently not in use
+        rel = rel_path(path, self.dir_path)
+        for pattern in self.ignore_patterns:
+            if rel.match(pattern): return True
+        return False
+    
     def deleted(self) -> None:
         super().deleted()
         for file in self.files.values(): file.deleted()
@@ -115,25 +123,24 @@ class Folder(DirectoryElement):
             if not dir_element.full_path.exists() and dir_element.exists:
                 dir_element.deleted()
                 self.logger.info(f"'{dir_element.location()}' deleted")
-                
-        # check if files/folders reated & modified        
-        for dir_element in self.full_path.iterdir():
-            if not self.is_in_ignore(dir_element):
-                rel_path = self.location() / dir_element.name
-                
-                if dir_element.is_dir():
-                    if rel_path in self.folders:  
-                        self.folders[rel_path].update()
-                    else:  
-                        self.folders[rel_path] = Folder(rel_path, self.dir_path, self.is_in_ignore)
-                        if logging: self.logger.info(f"Folder '{rel_path}' created")
-                
-                elif dir_element.is_file():
-                    if rel_path in self.files:  
-                        self.files[rel_path].update()
-                    else:  
-                        self.files[rel_path] = File(rel_path, self.dir_path) 
-                        self.logger.info(f"File '{rel_path}' created")
+        
+        # update files    
+        for file in filter(lambda f: not self.is_in_ignore(f) and f.is_file(), self.full_path.iterdir()):
+            rel_path = self.location() / file.name
+            if rel_path in self.files:  
+                self.files[rel_path].update()
+            else:  
+                self.files[rel_path] = File(rel_path, self.dir_path) 
+                self.logger.info(f"File '{rel_path}' created")
+        
+        # update folders
+        for folder in filter(lambda f: not self.is_in_ignore(f) and f.is_dir(), self.full_path.iterdir()):
+            rel_path = self.location() / folder.name
+            
+            if rel_path not in self.folders:  
+                self.folders[rel_path] = Folder(rel_path, self.dir_path, self.ignore_patterns)
+            else:
+                self.folders[rel_path].update()
                         
     def merge(self, other, last_time_synced, conflict_callback) -> None:
         """
@@ -210,24 +217,18 @@ class Directory():
         
         if self.save_file.exists():
             self.root = pickle.loads(self.save_file.read_bytes())
-            self.update()
         else:
-            self.root = Folder(Path(), self.path, self.is_in_ignore)
+            self.root = Folder(Path(), self.path, self.ignore_patterns)
         self.save()
         
     def update(self, callback=False):
+        self.logger.info(f"Updating directory {self.path}")
         self.root.update()
         if callback: self.update_callback(str(self.path))
         
     def save(self):
         self.save_file.write_bytes(pickle.dumps(self.root))
         logger.info(f"Save directory tracker @ {self.path}")
-        
-    def is_in_ignore(self, path:Path, is_file=None) -> bool:  # is_file currently not in use
-        rel = rel_path(path, self.path)
-        for pattern in self.ignore_patterns:
-            if rel.match(pattern): return True
-        return False
     
     def to_dict(self):
         return self.root.to_dict()
@@ -248,7 +249,17 @@ class FileTracker:
         self.directories = {}
         for dir_path, dir_props in self.directories_list.items():
             self.directories[dir_path] = Directory(Path(dir_path), self.save_path, dir_props[IGNORE_KEY], self.logging_settings, update_callback)
-
+        
+        total = 0
+        for _ in range(5):
+            t0 = time.time()
+            for _, directory in self.directories.items():
+                directory.update()
+            t1 = time.time()
+            print(t1 - t0)
+            total += t1 -t0
+        print("avg: " + str(total/5))
+        
 
     def add_directory(self, path:Path,  name:str, ignore_patterns:list) -> None:
         if path in self.directories: raise Exception(f"Already tracking {path}")

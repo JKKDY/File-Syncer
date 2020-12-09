@@ -243,7 +243,7 @@ class Config(JSON_File):
             #TODO add filter such that FS_root is not eliminated from logger names in log files, see:https://stackoverflow.com/questions/46954855/python-logging-format-how-to-print-only-the-last-part-of-logger-name
             self.formater = logging.Formatter("[{asctime}] [{levelname:<6}] {name} : {message}", style="{")
             
-            self.root_handler = logging.FileHandler(self.logs_path / "main.log")
+            self.root_handler = logging.FileHandler(self.logs_path / "main.log", encoding='utf-8')
             self.root_handler.setFormatter(self.formater)
             self.root_handler.setLevel(self.logging_level)
             
@@ -256,7 +256,7 @@ class Config(JSON_File):
             logger.setLevel(self.logging_level)
             logger.propagate = False
             
-            handler = logging.FileHandler(self.logs_path / file_name)
+            handler = logging.FileHandler(self.logs_path / file_name, encoding="utf-8")
             handler.setLevel(logging.DEBUG)
             handler.setFormatter(self.formater)
             

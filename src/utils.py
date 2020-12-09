@@ -71,3 +71,11 @@ class RepeatedJob(threading.Thread):
         while not self.stopped.wait(self.interval):
             self.execute(*self.args, **self.kwargs)
 
+
+
+class Timer: # for benchmark purposes
+    def start(self):
+        self.start_time = time.time()
+        
+    def stop(self):
+        return time.time - self.start_time()

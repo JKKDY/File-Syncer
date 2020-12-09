@@ -64,8 +64,14 @@ class Socket:
     
     def recv(self):
         b = self.socket.recv(HEADER_SIZE)
-        size = int.from_bytes(b, "big")
-        data = pickle.loads(self.socket.recv(size))
+        msglen = int.from_bytes(b, "big")
+        data = []
+        bytes_received = 0
+        while bytes_received < msglen:
+            receive_size = 4096 if msglen - bytes_received > 4096 else msglen - bytes_received
+            data.append(self.socket.recv(receive_size))
+            bytes_received += len(data[-1])
+        data = pickle.loads(b''.join(data))
         return data
     
     def close(self): self.socket.close()
