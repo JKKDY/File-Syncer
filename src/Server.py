@@ -59,7 +59,8 @@ class Server():
             client.send_multi(self.uuid, self.hostname, self.port) # send introduction
             self.connections.update(uuid, new_uuid=server_uuid, new_dir_info=dir_info)
             logger.info(f"Client connected to {client.conn_str()}")
-            self.callbacks.uuid_change(uuid, server_uuid)
+            if uuid is not server_uuid: # uuid has changed
+                self.callbacks.uuid_change(uuid, server_uuid)
             self.callbacks.status_change(server_uuid)
             return server_uuid
         except socket.error as e:
@@ -85,11 +86,13 @@ class Server():
                     logger.info(f"Failed bilateral connection to {uuid} @ ({hostname}, {port}): {e}")
                     uuid = False
                     
-                if uuid:
-                    if uuid not in self.clients:
-                        if uuid not in self.connections:
-                            if temp_uuid(hostname, port) not in self.connections: self.connections.new_connection(hostname, port, uuid=uuid)
-                            else: self.connections.update(temp_uuid(hostname, port), new_uuid=uuid)
+                if uuid: # connection was successful
+                    if uuid not in self.clients: # if this server not connected to uuid
+                        if uuid not in self.connections: # if uuid not known
+                            if temp_uuid(hostname, port) not in self.connections: # if connection has also not been entered by the user 
+                                self.connections.new_connection(hostname, port, uuid=uuid) 
+                            else: # if connection is only known by temporary uuid
+                                self.connections.update(temp_uuid(hostname, port), new_uuid=uuid)
                         self.connections.update(uuid, new_hostname=hostname, new_port=port)
                         if not self._connect(uuid, hostname, port):
                             pass # bilateral connection was not successful -> disconnect or smth

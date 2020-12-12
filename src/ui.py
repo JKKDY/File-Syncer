@@ -23,9 +23,10 @@ class UI_Code(IntEnum):
     REQ_DIR_INFO = auto()
     REQ_DIR_GRAPH = auto()
     
-    UPDATE_UUID = auto()
-    UPDATE_STATUS = auto()
-    UPDATE_DIR_GRAPH = auto()
+    NOTF_UPDATE_UUID = auto()
+    NOTF_UPDATE_STATUS = auto()
+    NOTF_UPDATE_DIR_GRAPH = auto()
+    NOTF_NEW_CONNECTION = auto()
     
     ADD_CONNECTION = auto()
     UUID_CONNECT = auto()

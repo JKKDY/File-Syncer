@@ -19,15 +19,15 @@ logger_name, logger = get_logger(__name__)
 class FileSyncer(Config):
     def __init__(self, config_path:Path):
         super().__init__(config_path)
-        logger.info("Filesyncer start")
-        self.connections = ConnectionsList(self.data_path/"connections.json")
+        logger.info("Filesyncer start") 
+        self.connections = ConnectionsList(self.data_path/"connections.json", new_conn_clback=self.new_connection_callback)
         self.directories = DirectoriesList(self.data_path/"directories.json")
         self.sessions = Sessions(self.data_path/"sessions.json")
         self.uuid = get_uuid(self.data_path)
         
-        self.file_tracker = FileTracker(self.directories, self.logging_settings, self.data_path, self.update_directory_graph)
+        self.file_tracker = FileTracker(self.directories, self.logging_settings, self.data_path, self.update_directory_graph_callback)
         
-        server_callbacks = Callbacks(self.update_uuid, self.update_status)
+        server_callbacks = Callbacks(self.update_uuid_callback, self.update_status_callback)
         self.server = Server(self.hostname, self.ip, self.port, self.uuid, self.file_tracker, self.sessions, \
             self.connections, self.directories, self.logging_settings, server_callbacks)
         self.server_thread = Thread(target=self.server.start_server, name = "server_thread")   
@@ -86,10 +86,12 @@ class FileSyncer(Config):
     def sync(self, uuid, local, remote): self.server.clients[uuid].sync(local, remote)
         
     
-    def update_uuid(self, old_uuid, new_uuid): self.ui.notify(UI_Code.UPDATE_UUID, old_uuid, new_uuid)
+    def update_uuid_callback(self, old_uuid, new_uuid): self.ui.notify(UI_Code.NOTF_UPDATE_UUID, old_uuid, new_uuid)
         
-    def update_status(self, uuid): self.ui.notify(UI_Code.UPDATE_STATUS, uuid, self.get_uuid_status(uuid)) 
+    def update_status_callback(self, uuid): self.ui.notify(UI_Code.NOTF_UPDATE_STATUS, uuid, self.get_uuid_status(uuid)) 
     
-    def update_directory_graph(self, directory): self.ui.notify(UI_Code.UPDATE_DIR_GRAPH, directory, self.file_tracker[directory].to_dict())
+    def update_directory_graph_callback(self, directory): self.ui.notify(UI_Code.NOTF_UPDATE_DIR_GRAPH, directory, self.file_tracker[directory].to_dict())
+    
+    def new_connection_callback(self, uuid): self.ui.notify(UI_Code.NOTF_NEW_CONNECTION, uuid)
 
     

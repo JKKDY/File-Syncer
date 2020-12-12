@@ -12,14 +12,15 @@ class ConnectionSelection{
 
     add(uuid, conn){
         let connection = {};
+        connection.uuid = uuid
         connection.div = document.createElement("div");
-        connection.div.id = uuid;
+        // connection.div.id = uuid;
         connection.div.onclick = ()=>{
             if (this.active) this.active.classList.remove("active");
             this.active = connection.div;
             this.active.classList.add("active");
             this.sync_container.innerHTML = "";
-            this.sync_container.appendChild(window.syncs.sync_selections[uuid].list_div);
+            this.sync_container.appendChild(window.syncs.sync_selections[connection.uuid].list_div);
         }
 
         connection.i = document.createElement("i");
@@ -33,6 +34,12 @@ class ConnectionSelection{
         connection.div.appendChild(connection.span);
         this.list.appendChild(connection.div);
         this.connections[uuid] = connection;
+    }
+
+    change_uuid(old_uuid, new_uuid){
+        this.connections[new_uuid] = this.connections[old_uuid]
+        this.connections[new_uuid].uuid = new_uuid
+        delete this.connections[old_uuid]
     }
 }
 
@@ -112,7 +119,7 @@ class SyncSelection{
 
 
 
-class PropetiesDisplay{
+class PropertiesDisplay{
     constructor(){
         this.container = document.getElementById("props_container");
         this.active = {};
@@ -121,7 +128,11 @@ class PropetiesDisplay{
         this.uuid = undefined
 
         this.sync_btn = document.getElementById("sync_btn");
-        this.sync_btn.onclick = ()=>{ eel.sync(this.uuid, this.local, this.remote) };
+        this.sync_btn.onclick = ()=>{ 
+            if (this.uuid && window.data.connections[this.uuid].status === STATUS_CONNECTED){
+                eel.sync(this.uuid, this.local, this.remote) 
+            }
+        };
         
         this.sync_info = new SyncInfo();
         document.getElementById("info_selector").onclick = (event)=>{
@@ -160,8 +171,9 @@ class PropetiesDisplay{
         this.remote = remote;
         this.local = local;
         this.uuid = uuid;
-        // if (!this.active.selector && !this.active.container) {}
-        this.display_container(document.getElementById("info_selector"), this.sync_info)
+        if (!this.active.selector && !this.active.container) {
+            this.display_container(document.getElementById("info_selector"), this.sync_info)
+        }
         this.sync_info.set(uuid, local, remote);
         this.local_ignore_info.set(uuid, local, remote);
         this.sync_ignore_info.set(uuid, local, remote);
@@ -258,7 +270,7 @@ class ConflictsInfo extends Container{
     window.syncs.conn_selection = new ConnectionSelection();
     window.syncs.list = document.getElementById("sync_list");
     window.syncs.sync_selections = {};
-    window.syncs.properties_display = new PropetiesDisplay();
+    window.syncs.properties_display = new PropertiesDisplay();
 
     for (const [uuid, conn] of Object.entries(window.data.connections)){
         window.syncs.conn_selection.add(uuid, conn);
@@ -267,6 +279,24 @@ class ConflictsInfo extends Container{
 
     window.callbacks.status_change.add((uuid, status)=>{
         window.syncs.conn_selection.connections[uuid].change_status(status)
+    })
+
+    window.callbacks.uuid_change.add((old_uuid, new_uuid) => {
+        window.syncs.conn_selection.change_uuid(old_uuid, new_uuid)
+
+        window.syncs.sync_selections[new_uuid] = window.syncs.sync_selections[old_uuid]
+        window.syncs.sync_selections[new_uuid].uuid = new_uuid
+        delete window.syncs.sync_selections[old_uuid]  
+
+        let display = window.syncs.properties_display 
+        if (display.uuid === old_uuid){
+            display.set(new_uuid, display.remote, display.local)
+        }
+    })
+
+    window.callbacks.new_connection.add((uuid) => {
+        window.syncs.conn_selection.add(uuid, window.data.connections[uuid]);
+        window.syncs.sync_selections[uuid] = new SyncSelection(window.data.connections[uuid]);
     })
 })();
 

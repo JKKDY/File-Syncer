@@ -1,18 +1,19 @@
 
 import datetime
+import glob
 import json
 import logging
 import os
 import pickle
 import time
-import glob
-from threading import Thread
 from hashlib import sha1
 from pathlib import Path
+from threading import Thread
 
-from src.utils import now, hash_word, rel_path, hash_file
-from src.Config import get_logger, DATE_TIME_FORMAT, DEFAULT_TIME, IGNORE_KEY
+from imohash import hashfile
 
+from src.Config import DATE_TIME_FORMAT, DEFAULT_TIME, IGNORE_KEY, get_logger
+from src.utils import hash_file, hash_word, now, rel_path
 
 logger_name, logger = get_logger(__name__)
 
@@ -57,8 +58,6 @@ class DirectoryElement:
         return self.full_path.name
     
     
-    
-from imohash import hashfile
     
 class File(DirectoryElement):
         def __init__(self, rel_path, dir_path, update_on_creation=True):
@@ -216,6 +215,7 @@ class Directory():
         self.update_callback = update_callback
         
         if self.save_file.exists():
+            # TODO Folder.ign_ptn must be set every time its loaded via pickle 
             self.root = pickle.loads(self.save_file.read_bytes())
         else:
             self.root = Folder(Path(), self.path, self.ignore_patterns)
@@ -250,15 +250,8 @@ class FileTracker:
         for dir_path, dir_props in self.directories_list.items():
             self.directories[dir_path] = Directory(Path(dir_path), self.save_path, dir_props[IGNORE_KEY], self.logging_settings, update_callback)
         
-        total = 0
-        for _ in range(5):
-            t0 = time.time()
-            for _, directory in self.directories.items():
-                directory.update()
-            t1 = time.time()
-            print(t1 - t0)
-            total += t1 -t0
-        print("avg: " + str(total/5))
+        for _, directory in self.directories.items():
+            directory.update()
         
 
     def add_directory(self, path:Path,  name:str, ignore_patterns:list) -> None:

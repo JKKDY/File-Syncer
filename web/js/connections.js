@@ -1,6 +1,26 @@
 
 
 
+// "3c8fd4fd-1981-11eb-a7f5-70bc105d2bbd": {
+//     "auto_connect": -1,
+//     "directories": {
+//         "D:\\dev\\File Syncer GUI\\test_folder": "test folder"
+//     },
+//     "hostname": "Surface",
+//     "name": "This PC",
+//     "port": 40000,
+//     "syncs": {
+//         "D:\\dev\\File Syncer GUI\\test_folder1": {
+//             "D:\\dev\\File Syncer GUI\\test_folder": {
+//                 "auto_sync": 0,
+//                 "bidirectional": true,
+//                 "local_ignore": [],
+//                 "synced_ignore": []
+//             }
+//         }
+//     }
+// },
+
 
 
 // ##################
@@ -45,8 +65,8 @@ class NewConnectionWindow{
         let uuid = await eel.add_connection(
             this.hostname_input.value, 
             parseInt(this.port_input.value), 
-            this.name_input.value)()
-        await new_connection(uuid, selection)
+            this.name_input.value
+        )()
         overlay_off()
     }
 }
@@ -157,7 +177,7 @@ class ConnectionRow{
         this.display = window.connections.info_display;
 
         this.row = document.createElement("div")
-        this.row.id = uuid
+        // this.row.id = uuid
         this.row.className = "tb_row"
         this.row.addEventListener("click", ()=> window.connections.info_display.display(this))
 
@@ -266,6 +286,12 @@ class Selection{
         this.table.removeChild(this.rows[uuid].row)
         delete this.rows[uuid]
     }
+
+    change_uuid(old_uuid, new_uuid){
+        this.rows[new_uuid] = this.rows[old_uuid]
+        this.rows[new_uuid].uuid = new_uuid
+        delete this.rows[old_uuid]
+    }
 }
 
 
@@ -295,51 +321,20 @@ class Selection{
 
     document.getElementById("new_connection").onclick = ()=> window.connections.new_conn_window.display()
 
-
     window.callbacks.status_change.add((uuid, status)=>{
         window.connections.selection.rows[uuid].update_status(status)
     })
+    window.callbacks.uuid_change.add((old_uuid, new_uuid) => {
+        window.connections.selection.change_uuid(old_uuid, new_uuid)
+
+        if (window.connections.info_display.active.uuid === new_uuid){
+            window.connections.info_display.uuid_field.innerHTML = new_uuid
+        }
+    })
+    window.callbacks.new_connection.add((uuid) => {
+        window.connections.selection.add(uuid, new ConnectionRow(uuid))
+    })
 })();
-
-
-
-
-
-
-
-// ###################
-//  EXPOSED FUNCTIONS
-// ###################
-// eel.expose(update_status)
-// function update_status(uuid, status){
-//     console.log(status)
-//     connections[uuid].update_status(status)
-// }
-
-// eel.expose(update_uuid)
-// function update_uuid(old_uuid, new_uuid){
-//     if (old_uuid === new_uuid) return // otherwise connection will be deleted 
-//     console.log(new_uuid)
-//     connections[new_uuid] = connections[old_uuid]
-//     connections[new_uuid].uuid = new_uuid
-//     delete connections[old_uuid]
-// }
-
-
-// Note: this python error message means some error happend in an exposed javascript function
-// Traceback (most recent call last):
-//   File "src\\gevent\\greenlet.py", line 854, in gevent._gevent_cgreenlet.Greenlet.run
-//   File "d:\dev\File Syncer GUI\env\lib\site-packages\eel\__init__.py", line 303, in _process_message
-//     _call_return_values[call_id] = message['value']
-// KeyError: 'value'
-
-
-
-
-
-
-
-
 
 
 

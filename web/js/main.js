@@ -233,8 +233,7 @@ class Folder{
 // ####################
 //       Callback
 // ####################
-
-class Callbacks{
+class Callback{
     constructor(){
         this.callbacks = [];
     }
@@ -243,9 +242,9 @@ class Callbacks{
         this.callbacks.push(fkt)
     }
 
-    call(...args){
+    async call(...args){
         for (const callback of this.callbacks){
-            callback(...args)
+            await callback(...args)
         } 
     }
 }
@@ -268,31 +267,43 @@ class Callbacks{
     window.data.directories = {};
     window.callbacks = {};
 
+    async function new_conn(uuid){
+        let info = await eel.get_uuid_info(uuid)();
+        let status = await eel.get_uuid_status(uuid)();
+        window.data.connections[uuid] = new Connection(uuid, info, status);
+    }
+
+    async function new_dir(path){
+        let info = await eel.get_dir_info(path)();
+        let graph = await eel.get_dir_graph(path)();
+        window.data.directories[path] = new Directory(path, info, graph);
+    }
+
 
     try {
-        for (const uuid of await eel.get_uuids()()) {
-            let info = await eel.get_uuid_info(uuid)();
-            let status = await eel.get_uuid_status(uuid)();
-            window.data.connections[uuid] = new Connection(uuid, info, status);
-        };
-    
-        for (const path of await eel.get_directories()()){
-            let info = await eel.get_dir_info(path)();
-            let graph = await eel.get_dir_graph(path)();
-            window.data.directories[path] = new Directory(path, info, graph);
-        };
+        for (const uuid of await eel.get_uuids()()) await new_conn(uuid)
+        for (const path of await eel.get_directories()()) await new_dir(path)
 
-        window.callbacks.status_change = new Callbacks()
-        window.callbacks.uuid_change = new Callbacks()
-        window.callbacks.directory_graph_update = new Callbacks()
+        window.callbacks.status_change = new Callback()
+        window.callbacks.uuid_change = new Callback()
+        window.callbacks.directory_graph_update = new Callback()
+        window.callbacks.new_connection = new Callback()
 
         window.callbacks.directory_graph_update.add((path, graph) => {
-            console.log(path)
-            console.log(window.data.directories[path])
             window.data.directories[path].update_graph(graph)
         })
+
+        window.callbacks.uuid_change.add((old_uuid, new_uuid) => {
+            window.data.connections[new_uuid] = window.data.connections[old_uuid]
+            delete window.data.connections[old_uuid]
+        })
+        
+        window.callbacks.new_connection.add(async (uuid) => {
+            await new_conn(uuid)
+        })
+
     } finally {
-        window.navbar = new Navbar(); // try/finally is used so this also runs in live server
+        window.navbar = new Navbar(); // try/finally is used so this also runs on live server
     }
 
 })();
@@ -309,10 +320,16 @@ function update_status(uuid, status){
 
 eel.expose(update_uuid)
 function update_uuid(old_uuid, new_uuid){   
+    if (old_uuid === new_uuid) return 
     window.callbacks.uuid_change.call(old_uuid, new_uuid)
 }
 
 eel.expose(update_directory_graph)
 function update_directory_graph(path, directory_graph){
     window.callbacks.directory_graph_update.call(path, directory_graph)
+}
+
+eel.expose(new_connection)
+function new_connection(uuid){
+    window.callbacks.new_connection.call(uuid)
 }
