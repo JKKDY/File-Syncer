@@ -17,24 +17,31 @@ DEFAULT_TIME = datetime.min
 ROOT_LOGGER_NAME = "FS_root" # FS for FileSyncer
 
 
-PORT_KEY = "port"
-HOSTNAME_KEY = "hostname"
-NICKNAME_KEY = "name"
-SYNCS_KEY = "syncs"
-DIR_KEY = "directories"
-AUTO_CONNECT_KEY = "auto_connect"
+CONN_PORT_KEY = "port"
+CONN_HOSTNAME_KEY = "hostname"
+CONN_NAME_KEY = "name"
+CONN_SYNCS_KEY = "syncs"
+CONN_DIR_KEY = "directories"
+CONN_AUTO_CONNECT_KEY = "auto_connect"
 
-AUTO_SYNC_KEY = "auto_sync"
-BI_DIRECTIONAL_KEY = "bidirectional"
-LOC_SYNC_IGN_KEY = "local_ignore"
-SYNCED_IGN_KEY = "synced_ignore"
+SYNC_AUTO_KEY = "auto_sync"
+SYNC_BIDIR_KEY = "bidirectional"
+SYNC_LOC_IGN_KEY = "local_ignore"
+SYNC_SYNCED_IGN_KEY = "synced_ignore"
 
-IGNORE_KEY = "ignore"
-HASH_KEY = "hash"
+DIR_NAME_KEY = "name"
+DIR_IGNORE_KEY = "ignore"
+DIR_HASH_KEY = "hash"
 
 SESS_START_KEY = "start"
 SESS_END_KEY = "end"
 SESS_SYNCED_KEY = "synced"
+
+CFG_PORT_KEY = "port"
+CFG_UI_PORT_KEY = "ui_port"
+CFG_GLOB_IGN_KEY = "global_ign_patterns"
+CFG_SYNC_RATE = "default_sync_rate"
+CFG_PING_RATE = "default_ping_rate"
 
 
 
@@ -145,35 +152,35 @@ class ConnectionsList(JSON_File):
     def new_connection(self, hostname, port, nick_name="", auto_connect=-1, uuid=None):
         if uuid is None: uuid = temp_uuid(hostname, port) # create temporary uuid
         self[uuid] = JSON_Data({
-            PORT_KEY: int(port),
-            HOSTNAME_KEY: hostname,
-            NICKNAME_KEY: hostname if nick_name=="" else nick_name,
-            SYNCS_KEY: {},
-            DIR_KEY: {},
-            AUTO_CONNECT_KEY: auto_connect
+            CONN_PORT_KEY: int(port),
+            CONN_HOSTNAME_KEY: hostname,
+            CONN_NAME_KEY: hostname if nick_name=="" else nick_name,
+            CONN_SYNCS_KEY: {},
+            CONN_DIR_KEY: {},
+            CONN_AUTO_CONNECT_KEY: auto_connect
         }, self, self.auto_save)
         self.callback(uuid)
         return uuid
     
     def has_sync(self, uuid, local_dir, remote_dir):
-        if local_dir in self[uuid][SYNCS_KEY] and remote_dir in self[uuid][SYNCS_KEY][local_dir]: 
+        if local_dir in self[uuid][CONN_SYNCS_KEY] and remote_dir in self[uuid][SYNCS_KEY][local_dir]: 
             return True
         else: return False
      
     def add_sync(self, uuid, local_dir, remote_dir, auto_sync=-1, bidirectional=True):
-        if local_dir not in self[uuid][SYNCS_KEY]:
-            self[uuid][SYNCS_KEY][local_dir] = {}
-        self[uuid][SYNCS_KEY][local_dir][remote_dir] = {
-            BI_DIRECTIONAL_KEY:bidirectional,
-            AUTO_SYNC_KEY: auto_sync,
-            LOC_SYNC_IGN_KEY: [],
-            SYNCED_IGN_KEY: []
+        if local_dir not in self[uuid][CONN_SYNCS_KEY]:
+            self[uuid][CONN_SYNCS_KEY][local_dir] = {}
+        self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir] = {
+            SYNC_BIDIR_KEY:bidirectional,
+            SYNC_AUTO_KEY: auto_sync,
+            SYNC_LOC_IGN_KEY: [],
+            SYNC_SYNCED_IGN_KEY: []
         }
         
     def update(self, uuid, new_uuid=None, new_hostname=None, new_port=None, new_dir_info=None):
-        if new_hostname is not None: self[uuid][HOSTNAME_KEY] = new_hostname
-        if new_port is not None: self[uuid][PORT_KEY] = new_port
-        if new_dir_info is not None: self[uuid][DIR_KEY] = JSON_Data(new_dir_info, self[uuid], self.auto_save)
+        if new_hostname is not None: self[uuid][CONN_HOSTNAME_KEY] = new_hostname
+        if new_port is not None: self[uuid][CONN_PORT_KEY] = new_port
+        if new_dir_info is not None: self[uuid][CONN_DIR_KEY] = JSON_Data(new_dir_info, self[uuid], self.auto_save)
         if uuid != new_uuid and new_uuid is not None:
             self[new_uuid] = self[uuid] 
             del self[uuid]
@@ -189,17 +196,17 @@ class DirectoriesList(JSON_File):
     
     def new_directory(self, path, name, ignore_patterns):
         self[str(path)] = {
-            IGNORE_KEY: ignore_patterns,
-            HASH_KEY: hash_word(path),
-            NICKNAME_KEY: name if name != "" else path
+            DIR_IGNORE_KEY: ignore_patterns,
+            DIR_HASH_KEY: hash_word(path),
+            DIR_NAME_KEY: name if name != "" else path
         }
         
-    def update(self, path, ignore_patterns, hash):
-        self[str(path)][IGNORE_KEY] = ignore_patterns
-        self[str(path)][HASH_KEY] = hash
+    def update(self, path, ign_patterns=None, hash=None):
+        if ign_patterns is not None: self[str(path)][DIR_IGNORE_KEY] = ign_patterns
+        if hash is not None: self[str(path)][DIR_HASH_KEY] = hash
         
-    def info(self):
-        return {str(path):directory[NICKNAME_KEY] for path, directory in self.items()}
+    def info(self): # returns paths & names of directories
+        return {str(path):directory[DIR_NAME_KEY] for path, directory in self.items()}
             
        
         
@@ -273,8 +280,6 @@ class Config(JSON_File):
         
     def __init__(self, path:Path):
         super().__init__(path)
-
-        # not going to put keys into varibales since this is the only place where they will be used
          
         self.data_path = Path(self.path.parent / self["data_path"] if not os.path.isabs(self["data_path"]) else self["data_path"])
         self.logs_path = Path(self.path.parent / self["logs_path"] if not os.path.isabs(self["logs_path"]) else self["logs_path"])
@@ -286,13 +291,14 @@ class Config(JSON_File):
         
         self.hostname = socket.gethostname()
         self.ip = socket.gethostbyname(self.hostname)
-        self.port = self["port"]
-        self.ui_port = self["ui_port"]
+        self.port = self[CFG_PORT_KEY]
+        self.ui_port = self[CFG_UI_PORT_KEY]
         
-        self.default_ping_rate = self["default_ping_rate"] # check if connection is still alive 
-        self.default_sync_rate = self["default_sync_rate"]
-        self.default_connect_rate = self["default_connect_rate"] # how often to try connect to other connections
+        # self.default_ping_rate = self[CFG_PING_RATE] # check if connection is still alive 
+        # self.default_sync_rate = self[CFG_SYNC_RATE]
+        # self.default_connect_rate = self["default_connect_rate"] # how often to try connect to other connections
         
+        self.global_ign_patterns = self[CFG_GLOB_IGN_KEY]
             
 
 

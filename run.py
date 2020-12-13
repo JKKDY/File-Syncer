@@ -1,6 +1,5 @@
 from pathlib import Path
 from src.FileSyncer import FileSyncer
-from src.Config import NICKNAME_KEY, HOSTNAME_KEY, PORT_KEY, SYNCS_KEY, DIR_KEY, AUTO_CONNECT_KEY
 
 import webGUI
 

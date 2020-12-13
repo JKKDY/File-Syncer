@@ -12,7 +12,7 @@ from threading import Thread
 
 from imohash import hashfile
 
-from src.Config import DATE_TIME_FORMAT, DEFAULT_TIME, IGNORE_KEY, get_logger
+from src.Config import DATE_TIME_FORMAT, DEFAULT_TIME, DIR_IGNORE_KEY, get_logger
 from src.utils import hash_file, hash_word, now, rel_path
 
 logger_name, logger = get_logger(__name__)
@@ -79,12 +79,10 @@ class File(DirectoryElement):
                 return self._created > time #? shouldnt it be self._deleted?
             
    
-   
-# Pröblem:
-# Update is slow with big directories
-# implement multithreading: on init one thread per directory
-# when updating check (sub) folder size and depth and use a dedicated thread if it reaches a certain threshold         
-    
+
+#######################
+#       FOLDER
+#######################
 class Folder(DirectoryElement):
     def __init__(self, rel_path:Path, dir_path:Path, ign_ptn, update_on_creation=True):
         super().__init__(rel_path, dir_path)
@@ -216,26 +214,31 @@ class Folder(DirectoryElement):
 
 
 
-
+#######################
+#     DIRECTORY
+#######################
 class Directory():
-    def __init__(self, path:Path, save_folder:Path, ignore, logging_settings, update_callback):
+    def __init__(self, path:Path, save_folder:Path, dir_ignore, glob_ignore, logging_settings, update_callback):
         self.path = path  # location of the directory on disk
         self.hash = hash_word(self.path)
         self.save_file = save_folder / self.hash  # file where directory Graph is stored
-        self.ignore_patterns = ignore
+        self.dir_ign_patterns = dir_ignore 
+        self.glob_ign_patterns = glob_ignore
         self.logger = logging_settings.create_logger(f"{logger_name}.{self.hash}", f"{self.hash}.log")
         self.update_callback = update_callback
         
         if self.save_file.exists():
-            # TODO Folder.ign_ptn must be set every time its loaded via pickle 
             self.root = pickle.loads(self.save_file.read_bytes())
-            self.update_ignore_patterns(ignore)
+            self.root.update_ign_ptn(self.ignore_patterns)
         else:
             self.root = Folder(Path(), self.path, self.ignore_patterns)
         self.save()
-        
-    def update_ignore_patterns(self, ignore_patterns):
-        self.root.update_ign_ptn(ignore_patterns)
+    
+    def update_ign_patterns(self, dir_ign=None, glob_ign=None):
+        if dir_ign is not None: self.dir_ign_patterns = dir_ign
+        if glob_ign is not None: self.glob_ign_patterns = glob_ign
+        self.root.update_ign_ptn(self.ignore_patterns)
+        self.update(callback=True)
         
     def update(self, callback=False):
         self.logger.info(f"Updating directory {self.path}")
@@ -249,38 +252,53 @@ class Directory():
     def to_dict(self):
         return self.root.to_dict()
     
+    @property
+    def ignore_patterns(self): 
+        return list(set(self.dir_ign_patterns + self.glob_ign_patterns))
+    
     
     
 
-    
+
+#######################
+#     FILE TRACKER
+#######################
 class FileTracker:
     """Stores tracked/manages tracked directories"""
-    def __init__ (self, directories, logging_settings, data_path, update_callback):
+    def __init__ (self, directories, logging_settings, data_path, glob_ign_ptn, update_callback):
         logger.info("Filetracker online")
         self.directories_list = directories
         self.logging_settings = logging_settings
         self.save_path = data_path
         self.update_callback = update_callback
+        self.global_ign_patterns = glob_ign_ptn
     
         self.directories = {}
         for dir_path, dir_props in self.directories_list.items():
-            self.directories[dir_path] = Directory(Path(dir_path), self.save_path, dir_props[IGNORE_KEY], self.logging_settings, update_callback)
+            self.directories[dir_path] = Directory(Path(dir_path), self.save_path, dir_props[DIR_IGNORE_KEY], self.global_ign_patterns, self.logging_settings, update_callback)
         
         for _, directory in self.directories.items():
             directory.update()
         
-
-    def add_directory(self, path:Path,  name:str, ignore_patterns:list) -> None:
+    def add_directory(self, path:Path,  name:str, dir_ign_patterns:list) -> None:
         if path in self.directories: raise Exception(f"Already tracking {path}")
         
-        self.directories[path] = Directory(path, self.save_path, ignore_patterns, self.logging_settings, self.update_callback)
-        self.directories_list.new_directory(path, name, ignore_patterns)
+        self.directories[path] = Directory(path, self.save_path, dir_ign_patterns, self.global_ign_patterns, self.logging_settings, self.update_callback)
+        self.directories_list.new_directory(path, name, dir_ign_patterns)
         
         logger.info(f"Tracking directory {path}") 
+        
+    def update_dir_ignore(self, dir_path, ign_patterns):
+        self.directories[dir_path].update_ign_patterns(dir_ign = ign_patterns)
+        self.directories_list.update(dir_path, ign_patterns=ign_patterns)
+    
+    def update_glob_ignore(self, ign_patterns):
+        for _, directory in self.directories.items():
+            directory.update_ign_patterns(glob_ign=ign_patterns)
     
     def save(self):
         for directory in self.directories.values():
-            self.directories_list.update(directory.path, directory.ignore_patterns, directory.hash)
+            self.directories_list.update(directory.path, directory.dir_ign_patterns, directory.hash)
             directory.save()
     
     def shut_down(self): 

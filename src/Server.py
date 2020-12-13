@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 
 from src.FileTracker import FileTracker
-from src.Config import get_logger, temp_uuid, DATE_TIME_FORMAT, PORT_KEY, HOSTNAME_KEY, SYNCS_KEY
+from src.Config import get_logger, temp_uuid, DATE_TIME_FORMAT, CONN_PORT_KEY, CONN_HOSTNAME_KEY
 from src.Client import Client
 from src.Network import Socket, NT_Code, NT_MSG_TYPE
 
@@ -45,8 +45,8 @@ class Server():
         
     def connect(self, uuid):        
         assert(uuid not in self.clients)
-        hostname = self.connections[uuid][HOSTNAME_KEY]
-        port = self.connections[uuid][PORT_KEY]
+        hostname = self.connections[uuid][CONN_HOSTNAME_KEY]
+        port = self.connections[uuid][CONN_PORT_KEY]
         logger.info(f"Initiate connection to {uuid} @ ({hostname}, {port})")
         return self._connect(uuid, hostname, port)
 
@@ -134,7 +134,7 @@ class Server():
         
 
     def close_connection(self, uuid):
-        logger.info(f"Disconnecting from {uuid} @ ({self.connections[uuid][HOSTNAME_KEY]}, {self.connections[uuid][PORT_KEY]})")
+        logger.info(f"Disconnecting from {uuid} @ ({self.connections[uuid][CONN_HOSTNAME_KEY]}, {self.connections[uuid][CONN_PORT_KEY]})")
         self.clients.pop(uuid).close()
         self.callbacks.status_change(uuid)
         
