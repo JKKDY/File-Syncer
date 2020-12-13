@@ -112,6 +112,11 @@ class Folder(DirectoryElement):
             if dir_element.is_modified(time): return True
         return False 
     
+    def update_ign_ptn(self, ign_ptn):
+        self.ignore_patterns = ign_ptn
+        for _, folder in self.folders.items():
+            folder.update_ign_ptn(ign_ptn)
+    
     def update(self):
         """ updates state (= _created, _deleted) of self and folders/files"""
         # check if file self been created
@@ -124,22 +129,29 @@ class Folder(DirectoryElement):
                 self.logger.info(f"'{dir_element.location()}' deleted")
         
         # update files    
-        for file in filter(lambda f: not self.is_in_ignore(f) and f.is_file(), self.full_path.iterdir()):
+        for file in filter(lambda f: f.is_file(), self.full_path.iterdir()):
             rel_path = self.location() / file.name
-            if rel_path in self.files:  
-                self.files[rel_path].update()
-            else:  
-                self.files[rel_path] = File(rel_path, self.dir_path) 
-                self.logger.info(f"File '{rel_path}' created")
+            if not self.is_in_ignore(file):
+                if rel_path in self.files:  
+                    self.files[rel_path].update()
+                else:  
+                    self.files[rel_path] = File(rel_path, self.dir_path) 
+                    self.logger.info(f"File '{rel_path}' created")
+            elif rel_path in self.files:
+                del self.files[rel_path]
+                self.logger.info(f"File '{rel_path}' is now ignored")
         
         # update folders
-        for folder in filter(lambda f: not self.is_in_ignore(f) and f.is_dir(), self.full_path.iterdir()):
+        for folder in filter(lambda f: f.is_dir(), self.full_path.iterdir()):
             rel_path = self.location() / folder.name
-            
-            if rel_path not in self.folders:  
-                self.folders[rel_path] = Folder(rel_path, self.dir_path, self.ignore_patterns)
-            else:
-                self.folders[rel_path].update()
+            if not self.is_in_ignore(folder): 
+                if rel_path in self.folders:  
+                    self.folders[rel_path].update()
+                else:
+                    self.folders[rel_path] = Folder(rel_path, self.dir_path, self.ignore_patterns)
+            elif rel_path in self.folders:
+                del self.folders[rel_path]
+                self.logger.info(f"Folder '{rel_path}' is now ignored")
                         
     def merge(self, other, last_time_synced, conflict_callback) -> None:
         """
@@ -217,9 +229,13 @@ class Directory():
         if self.save_file.exists():
             # TODO Folder.ign_ptn must be set every time its loaded via pickle 
             self.root = pickle.loads(self.save_file.read_bytes())
+            self.update_ignore_patterns(ignore)
         else:
             self.root = Folder(Path(), self.path, self.ignore_patterns)
         self.save()
+        
+    def update_ignore_patterns(self, ignore_patterns):
+        self.root.update_ign_ptn(ignore_patterns)
         
     def update(self, callback=False):
         self.logger.info(f"Updating directory {self.path}")

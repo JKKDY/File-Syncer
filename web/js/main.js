@@ -256,6 +256,13 @@ class Callback{
 //        MAIN
 // ####################
 
+// TODO: cant add directories over ui
+// TODO: collapsable folder levels
+// TODO: display conflicts
+// TODO: make ignore patterns editable
+// TODO: make displaying connection info prettier
+// TODO: make connection properties editable
+
 (async function(){
     "use strict";   
     document.getElementById("overlay").onclick = ()=>overlay_off();

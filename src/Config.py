@@ -273,11 +273,15 @@ class Config(JSON_File):
         
     def __init__(self, path:Path):
         super().__init__(path)
+
         # not going to put keys into varibales since this is the only place where they will be used
          
         self.data_path = Path(self.path.parent / self["data_path"] if not os.path.isabs(self["data_path"]) else self["data_path"])
         self.logs_path = Path(self.path.parent / self["logs_path"] if not os.path.isabs(self["logs_path"]) else self["logs_path"])
         
+        self.data_path.mkdir(parents=True, exist_ok=True)
+        self.logs_path.mkdir(parents=True, exist_ok=True)
+            
         self.logging_settings = self.LoggingSettings(self.logs_path)
         
         self.hostname = socket.gethostname()

@@ -12,8 +12,9 @@ logger_name, logger = get_logger(__name__)
 
 # TODO: add encryption (diffie-hellman, RSA ...)
 # TODO: sync optimization; check if files have been moved/renamed etc
-# TODO: directory update optimization; use multithreading
 # TODO: rotating filehandler for logger
+# TODO: add global ignores (that are applied to every directory
+# idea: check if files are hidden: https://github.com/victordomingos/Count-files/issues/16 https://www.tutorialspoint.com/How-to-ignore-hidden-files-using-os-listdir-in-Python 
 
 
 class FileSyncer(Config):
