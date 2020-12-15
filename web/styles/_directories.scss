@@ -56,7 +56,7 @@ $dir_selection_padding: 1.3vw;
 #Directories .dir_info{
     display: grid;
     grid-template-rows: 1fr;
-    grid-template-columns: minmax(max-content, 1.5fr) minmax(min-content, 1fr);
+    grid-template-columns: 55vw 1fr;
     grid-template-rows: calc(2em + 3vh) 1fr;
     min-width: 0;
     min-height: 0;
@@ -81,64 +81,67 @@ $dir_selection_padding: 1.3vw;
     font-weight: 500;
 }
 
-// > div.folder:first-child > .name{color:$accent_color5;}
-
+ 
 
 #Directories #directory_view{
     margin-left: 2.5vw;
-    margin-right: -4px;
+    margin-right: 1vw;
+    margin-bottom: 1vh;
     min-width: 0;
     min-height: 0;
     overflow-y: scroll;
-    overflow-x: hidden;
+    overflow-x: auto;
     grid-row: 2;
     grid-column: 1;
 
     .folder{
         display:grid;
         grid-auto-rows: min-content;
-        grid-template-columns: min-content 1fr;
+        grid-template-columns: calc(1em + 1.5vw) 1fr;
         margin-top: 2vh;
+        transition: all $trans_time ease 0s;
     
-        i{
+        .folder-icon{
             transition: all $trans_time ease 0s;
             color: $accent_color3;
-            padding-right: 15px;
             &:hover{
                 color: $font_color1;
             }
         }
+    }
     
-        #collapse_lvl_minus, #collapse_lvl_plus{
-            color: $font_color3;
+    .name{
+        font-size: 16px;
+        display: grid;
+        grid-template-columns: 1fr calc(1em + 1vw) min-content;
+        justify-items: left;
+        margin-right: calc(1.5vw - 3px);
+        
+        span{ padding-right: 1.5vw; }
+        
+        &:hover{
+            color: $accent_color3;
+            .collapse_lvl{ color: $color_negative; }
+            .expand_lvl{ color: $accent_color1; }
         }
-        #collapse_lvl_minus{
-            padding:0;
-            &:hover{
-                color: $color_negative;
-            }
+
+        .collapse_lvl, .expand_lvl{
+            color: $color3;
+            transition: all $trans_time ease 0s;
+            float: left;
+            &:hover{ color: $font_color1;}
+            cursor: pointer;
         }
-        #collapse_lvl_plus{
-            padding-left: 50px;
-            padding-right: 30px;
-            &:hover{
-                color: $accent_color1;
-            }
-        }
-    
-        .name{
-            font-size: 16px;
-        }
-    
-        .content{
-            grid-column: 2;
-            display: grid;
-        }
-        .file{
-            padding-top: 1vh;
-            font-size: 14px;
-        }
-    }   
+    }
+
+    .content{
+        grid-column: 2;
+        display: grid;
+    }
+    .file{
+        padding-top: 1vh;
+        font-size: 14px;
+    } 
 }
 
 

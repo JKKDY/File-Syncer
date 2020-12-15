@@ -10,6 +10,5 @@ if __name__ == "__main__":
     with FileSyncer(Path("config.json")) as syncer:
         syncer.start_server()
         webGUI.start() 
-        # input()
 
 

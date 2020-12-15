@@ -138,6 +138,7 @@ class Directory{
         this.ign_patterns = info.ignore; 
         this.graph = new Folder(graph.name);
         this.graph.update(graph)
+        this.graph.expand()
         this.root = this.graph.div
     }
 
@@ -156,34 +157,116 @@ class Folder{
         this.div = document.createElement("div");
         this.div.className = "folder";
 
-        this.collapse_btn = document.createElement("i");
-        this.collapse_btn.className = "far fa-folder-open";
-        this.collapse_btn.addEventListener("click", ()=>{
-            if (this.collapse_btn.classList.contains("fa-folder")) this.expand();
+        this.folder_icon = document.createElement("i");
+        this.folder_icon.className = "far fa-folder-open folder-icon";
+        this.folder_icon.addEventListener("click", ()=>{
+            if (this.folder_icon.classList.contains("fa-folder")) this.expand();
             else this.collapse();
         });
 
         this.name_div = document.createElement("div");
-        this.name_div.innerHTML = name;
         this.name_div.className = "name";
 
+        let span = document.createElement("span");
+        span.innerHTML = name;
+        this.name_div.appendChild(span);
+
+        let expand_btn = document.createElement("i");
+        expand_btn.title = "Expand next level";
+        expand_btn.className = "far fa-plus-square expand_lvl";
+        expand_btn.addEventListener("click", ()=>
+            {   
+                let depth = this.get_collapsed_folder_depth()+1
+                console.log(depth)
+                this.expand_sub_folders(this.get_collapsed_folder_depth()+1)
+        })
+        this.name_div.appendChild(expand_btn)
+
+        let collapse_btn = document.createElement("i");
+        collapse_btn.title = "Collapse level";
+        collapse_btn.className = "far fa-minus-square collapse_lvl";
+        collapse_btn.addEventListener("click", ()=>{
+            let depth = this.get_expanded_folder_depth()-1
+            console.log(depth)
+            this.collapse_sub_folders(this.get_expanded_folder_depth()-1)
+        })
+        this.name_div.appendChild(collapse_btn)
+        
         this.content_div = document.createElement("div");
         this.content_div.className = "content";
 
-        this.div.appendChild(this.collapse_btn);
+        this.div.appendChild(this.folder_icon);
         this.div.appendChild(this.name_div);
         this.div.appendChild(this.content_div);
+        
+        this.collapse()
     }
 
     collapse() {
-        this.collapse_btn.className = "far fa-folder";
+        this.folder_icon.className = "far fa-folder folder-icon";
         this.content_div.style.display = "none";
     }
 
     expand() {
-        this.collapse_btn.className = "far fa-folder-open";
+        this.folder_icon.className = "far fa-folder-open folder-icon";
         this.content_div.style.display = "grid";
     }
+
+    is_expanded(){
+        return (this.content_div.style.display === "grid")
+    }
+
+    expand_sub_folders(depth){
+        if (depth == 0) return
+        this.expand()
+        for (const [path, subfolder] of  Object.entries(this.folders)){
+            subfolder.expand_sub_folders(depth-1)
+        } 
+    }
+
+    collapse_sub_folders(depth){
+        if (depth <= 0){
+            this.collapse()
+        }
+        for (const [path, subfolder] of  Object.entries(this.folders)){
+            subfolder.collapse_sub_folders(depth-1)
+        } 
+    }
+
+    get_collapsed_folder_depth(depth=0){
+        // returns the depth of the first non expanded folder
+        if (!this.is_expanded()) return depth;
+        for (const [path, subfolder] of  Object.entries(this.folders)){
+            if (!subfolder.is_expanded()) return depth + 1
+        }  
+        let depths = []
+        for (const [path, subfolder] of  Object.entries(this.folders)){
+            depths.push(subfolder.get_collapsed_folder_depth(depth+1))
+        }
+        return Math.min(...depths)
+    }
+
+    get_expanded_folder_depth(depth=0){
+        // returns the depth of the deepest folder where all subfolders are all collapsed + 1
+        let all_collapsed = true;
+        for (const [path, subfolder] of  Object.entries(this.folders)){
+            if (subfolder.is_expanded()) all_collapsed = false
+        }
+
+        if (all_collapsed) {
+            if (this.is_expanded()) return depth + 1;
+            else return depth;
+        }else{
+            let depths = []
+            for (const [path, subfolder] of  Object.entries(this.folders)){
+                if (subfolder.is_expanded()){
+                    depths.push(subfolder.get_expanded_folder_depth(depth+1))
+                }
+            }
+            return Math.max(...depths)
+        }
+    }
+   
 
 
     update(graph){
@@ -247,7 +330,7 @@ class Callback{
             await callback(...args)
         } 
     }
-}
+};
 
 
 
@@ -257,7 +340,6 @@ class Callback{
 // ####################
 
 // TODO: cant add directories over ui
-// TODO: collapsable folder levels
 // TODO: display conflicts
 // TODO: make ignore patterns editable
 // TODO: make displaying connection info prettier

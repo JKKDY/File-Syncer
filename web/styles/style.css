@@ -892,9 +892,8 @@
   display: grid;
   -ms-grid-rows: 1fr;
       grid-template-rows: 1fr;
-  -ms-grid-columns: minmax(max-content, 1.5fr) minmax(min-content, 1fr);
-      grid-template-columns: minmax(-webkit-max-content, 1.5fr) minmax(-webkit-min-content, 1fr);
-      grid-template-columns: minmax(max-content, 1.5fr) minmax(min-content, 1fr);
+  -ms-grid-columns: 55vw 1fr;
+      grid-template-columns: 55vw 1fr;
   -ms-grid-rows: calc(2em + 3vh) 1fr;
       grid-template-rows: calc(2em + 3vh) 1fr;
   min-width: 0;
@@ -918,11 +917,12 @@
 
 #Directories #directory_view {
   margin-left: 2.5vw;
-  margin-right: -4px;
+  margin-right: 1vw;
+  margin-bottom: 1vh;
   min-width: 0;
   min-height: 0;
   overflow-y: scroll;
-  overflow-x: hidden;
+  overflow-x: auto;
   -ms-grid-row: 2;
   grid-row: 2;
   -ms-grid-column: 1;
@@ -934,56 +934,70 @@
   display: grid;
   grid-auto-rows: -webkit-min-content;
   grid-auto-rows: min-content;
-  -ms-grid-columns: min-content 1fr;
-      grid-template-columns: -webkit-min-content 1fr;
-      grid-template-columns: min-content 1fr;
+  -ms-grid-columns: calc(1em + 1.5vw) 1fr;
+      grid-template-columns: calc(1em + 1.5vw) 1fr;
   margin-top: 2vh;
+  -webkit-transition: all 0.23s ease 0s;
+  transition: all 0.23s ease 0s;
 }
 
-#Directories #directory_view .folder i {
+#Directories #directory_view .folder .folder-icon {
   -webkit-transition: all 0.23s ease 0s;
   transition: all 0.23s ease 0s;
   color: #03D19B;
-  padding-right: 15px;
 }
 
-#Directories #directory_view .folder i:hover {
+#Directories #directory_view .folder .folder-icon:hover {
   color: #FFF;
 }
 
-#Directories #directory_view .folder #collapse_lvl_minus, #Directories #directory_view .folder #collapse_lvl_plus {
-  color: #676978;
+#Directories #directory_view .name {
+  font-size: 16px;
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: 1fr calc(1em + 1vw) min-content;
+      grid-template-columns: 1fr calc(1em + 1vw) -webkit-min-content;
+      grid-template-columns: 1fr calc(1em + 1vw) min-content;
+  justify-items: left;
+  margin-right: calc(1.5vw - 3px);
 }
 
-#Directories #directory_view .folder #collapse_lvl_minus {
-  padding: 0;
+#Directories #directory_view .name span {
+  padding-right: 1.5vw;
 }
 
-#Directories #directory_view .folder #collapse_lvl_minus:hover {
+#Directories #directory_view .name:hover {
+  color: #03D19B;
+}
+
+#Directories #directory_view .name:hover .collapse_lvl {
   color: #FF5454;
 }
 
-#Directories #directory_view .folder #collapse_lvl_plus {
-  padding-left: 50px;
-  padding-right: 30px;
-}
-
-#Directories #directory_view .folder #collapse_lvl_plus:hover {
+#Directories #directory_view .name:hover .expand_lvl {
   color: #00CD69;
 }
 
-#Directories #directory_view .folder .name {
-  font-size: 16px;
+#Directories #directory_view .name .collapse_lvl, #Directories #directory_view .name .expand_lvl {
+  color: #33364b;
+  -webkit-transition: all 0.23s ease 0s;
+  transition: all 0.23s ease 0s;
+  float: left;
+  cursor: pointer;
 }
 
-#Directories #directory_view .folder .content {
+#Directories #directory_view .name .collapse_lvl:hover, #Directories #directory_view .name .expand_lvl:hover {
+  color: #FFF;
+}
+
+#Directories #directory_view .content {
   -ms-grid-column: 2;
   grid-column: 2;
   display: -ms-grid;
   display: grid;
 }
 
-#Directories #directory_view .folder .file {
+#Directories #directory_view .file {
   padding-top: 1vh;
   font-size: 14px;
 }
@@ -1073,6 +1087,7 @@ body {
   max-height: 100vh;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
 }
 
 body .grid {
