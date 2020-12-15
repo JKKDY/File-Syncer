@@ -62,9 +62,7 @@ class SyncSelection{
     add(local_dir, syncs){
         let local_div = document.createElement("div");
         local_div.className = "local";
-        local_div.innerHTML = add_break_to_path(
-            window.data.directories[local_dir].name
-        );
+        local_div.innerHTML = add_break_to_path(window.data.directories[local_dir].name);
         this.sync_list[local_dir] = {"div": local_div};
 
         let remote_dirs = document.createElement("div");

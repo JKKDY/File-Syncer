@@ -382,6 +382,10 @@ class Callback{
             window.data.directories[path].update_graph(graph)
         })
 
+        window.callbacks.status_change.add((uuid, status) => {
+            window.data.connections[uuid].status = status;
+        })
+
         window.callbacks.uuid_change.add((old_uuid, new_uuid) => {
             window.data.connections[new_uuid] = window.data.connections[old_uuid]
             delete window.data.connections[old_uuid]

@@ -26,18 +26,6 @@ def update_with_nested_dict(keys, dictionary, default_value = None):
 # hash a word
 def hash_word(word):
     return sha1(str(word).encode()).hexdigest()[:20]
-         
-# hash a file
-def hash_file(file):
-    try:
-        hash_md5 = md5()
-        with open(file, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
-        return hash_md5.hexdigest()
-    except:
-        return None
-
 
 
 def abs_path(path:os.PathLike, base_path:os.PathLike) -> Path:

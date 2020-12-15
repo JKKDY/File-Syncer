@@ -6,6 +6,7 @@ from src.Config import get_logger, ConnectionsList, DirectoriesList, Sessions, C
 from src.FileTracker import FileTracker
 from src.Server import Server, Callbacks
 from src.ui import UiBackend, UI_Code
+
 logger_name, logger = get_logger(__name__)
 
 
@@ -13,7 +14,6 @@ logger_name, logger = get_logger(__name__)
 # TODO: add encryption (diffie-hellman, RSA ...)
 # TODO: sync optimization; check if files have been moved/renamed etc
 # TODO: rotating filehandler for logger
-# idea: check if files are hidden: https://github.com/victordomingos/Count-files/issues/16 https://www.tutorialspoint.com/How-to-ignore-hidden-files-using-os-listdir-in-Python 
 
 
 class FileSyncer(Config):
@@ -78,11 +78,11 @@ class FileSyncer(Config):
     def get_directory_graph(self, directory): return self.file_tracker[directory].to_dict()
     
     
-    def update_directory_ignore(self, directory, patterns): self.file_tracker.update_dir_ignore(directory, patterns)
-    
     def update_global_ignore(self, patterns): 
         self.file_tracker.update_glob_ignore(patterns)
         self[CFG_GLOB_IGN_KEY] = patterns
+        
+    def update_directory_ignore(self, directory, patterns): self.file_tracker.update_dir_ignore(directory, patterns)
     
         
     def add_connection(self, hostname, port, name): return self.connections.new_connection(hostname, port, name)

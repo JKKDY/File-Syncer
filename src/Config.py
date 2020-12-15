@@ -163,7 +163,7 @@ class ConnectionsList(JSON_File):
         return uuid
     
     def has_sync(self, uuid, local_dir, remote_dir):
-        if local_dir in self[uuid][CONN_SYNCS_KEY] and remote_dir in self[uuid][SYNCS_KEY][local_dir]: 
+        if local_dir in self[uuid][CONN_SYNCS_KEY] and remote_dir in self[uuid][CONN_SYNCS_KEY][local_dir]: 
             return True
         else: return False
      

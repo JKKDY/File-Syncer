@@ -49,7 +49,7 @@ class WebGUI(UiFrontend):
         
     def start(self):
         self.start_event_loop()
-        eel.start('index.html', port=60000)
+        eel.start('index.html', port=55000)
         
 
 def start(port=7000):

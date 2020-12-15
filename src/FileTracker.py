@@ -13,7 +13,7 @@ from threading import Thread
 from imohash import hashfile
 
 from src.Config import DATE_TIME_FORMAT, DEFAULT_TIME, DIR_IGNORE_KEY, get_logger
-from src.utils import hash_file, hash_word, now, rel_path
+from src.utils import hash_word, now, rel_path
 
 logger_name, logger = get_logger(__name__)
 
@@ -191,7 +191,7 @@ class Folder(DirectoryElement):
                     
                     if folder not in self.folders:
                         # self does not contain *folder*
-                        self.folders[folder] = Folder(other.folders[folder].location(), self.dir_path, self.is_in_ignore,False)
+                        self.folders[folder] = Folder(other.folders[folder].location(), self.dir_path, self.ignore_patterns,False)
                     
                     # merge subfolders aswell
                     self.folders[folder].merge(other.folders[folder], last_time_synced, conflict_callback)
@@ -251,6 +251,9 @@ class Directory():
     
     def to_dict(self):
         return self.root.to_dict()
+    
+    def is_in_ignore(self, f):
+        return self.root.is_in_ignore(Path(f))
     
     @property
     def ignore_patterns(self): 

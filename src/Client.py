@@ -1,3 +1,4 @@
+import copy
 import datetime
 import logging
 import os
@@ -6,13 +7,12 @@ import shutil
 import socket
 from collections import deque
 from threading import Event
-import copy
 
+from imohash import hashfile
 
-from src.Config import get_logger, DEFAULT_TIME
-from src.utils import update_with_nested_dict, hash_file
-from src.Network import Socket, NT_Code
-    
+from src.Config import DEFAULT_TIME, get_logger
+from src.Network import NT_Code, Socket
+from src.utils import update_with_nested_dict
 
 logger_name, logger = get_logger(__name__)
 
@@ -125,7 +125,7 @@ class Client(Socket):
         
         def create(graph): # graph = merged graph; this is how the directory being synced should look like
             for file in graph.files.values():
-                if file.exists and (not file.full_path.exists() or hash_file(file.full_path) != file.hash):
+                if file.exists and (not file.full_path.exists() or hashfile(file.full_path) != file.hash):
                     self.req_file(remote_dir, file.location(), local_dir, file.location())
                 elif not file.exists and file.full_path.exists():
                     file.full_path.unlink()
@@ -153,7 +153,3 @@ class Client(Socket):
         self.logger.info("Sync Done")  
                         
                         
-
-
-
-
