@@ -2,6 +2,7 @@ import datetime
 import os
 import threading
 import time
+from contextlib import contextmanager
 from hashlib import md5, sha1
 from pathlib import Path
 
@@ -58,6 +59,17 @@ class RepeatedJob(threading.Thread):
     def run(self):
         while not self.stopped.wait(self.interval):
             self.execute(*self.args, **self.kwargs)
+            
+            
+            
+
+# https://stackoverflow.com/questions/16740104/python-lock-with-statement-and-timeout
+@contextmanager
+def acquire_timeout(lock, timeout):
+    result = lock.acquire(timeout=timeout)
+    yield result
+    if result:
+        lock.release()
 
 
 
@@ -67,3 +79,7 @@ class Timer: # for benchmark purposes
         
     def stop(self):
         return time.time - self.start_time()
+    
+    
+    
+

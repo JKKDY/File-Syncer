@@ -1,7 +1,10 @@
 
 
 
-
+// ######################
+//  CONNECTION SELECTION
+// ######################
+// list of connections, located on the left side
 class ConnectionSelection{
     constructor(){
         this.sync_container = document.getElementById("sync_list_container")
@@ -10,7 +13,7 @@ class ConnectionSelection{
         this.connections = {};
     }
 
-    add(uuid, conn){
+    add(uuid, conn){ // conn: auto_connect, directories,hostname, name, port, status, sycns, uuid
         let connection = {};
         connection.uuid = uuid
         connection.div = document.createElement("div");
@@ -45,6 +48,11 @@ class ConnectionSelection{
 
 
 
+
+// ######################
+//      SYNC SELECTION
+// ######################
+// displays syncs for selected connection, located on the top RHS
 class SyncSelection{
     constructor(conn){
         this.uuid = conn.uuid
@@ -59,28 +67,37 @@ class SyncSelection{
     }
 
 
-    add(local_dir, syncs){
+    add(local_dir, syncs){ // add sync between a local directory and  remote directories
+        // syncs:
+        //  remote_dir1: auto_sync, bidirectional, local_ignore, synced_ignore -> sync between "local_dir" and "remote_dir1"
+        //  remote_dir2: auto_sync, bidirectional, local_ignore, synced_ignore -> sync between "local_dir" and "remote_dir2"
+        // ...
+
+        // left column in selection
         let local_div = document.createElement("div");
         local_div.className = "local";
         local_div.innerHTML = add_break_to_path(window.data.directories[local_dir].name);
         this.sync_list[local_dir] = {"div": local_div};
 
+        // right column in selection
         let remote_dirs = document.createElement("div");
         remote_dirs.className = "remote_dirs";
 
+        // parent div containg everything related to syncs of "local_dir"
         let sync_div = document.createElement("div");
         sync_div.className = "sync"
         sync_div.appendChild(local_div)
         sync_div.appendChild(remote_dirs)
 
-
-        for (const [remote, sync] of Object.entries(syncs)){
-            let i = document.createElement("i")
-            i.className = "fas fa-sync-alt"
+        for (const [remote, sync] of Object.entries(syncs)){ // for each sync from "local_dir" to a remote directory
+            let i = document.createElement("i") // sync icon
+            let icon = document.createElement("i")
+            icon.className = "fas fa-sync-alt"
+            i.appendChild(icon)
 
             let remote_div = document.createElement("div");
             remote_div.className = "remote";
-            remote_div.onclick = ()=>{
+            remote_div.onclick = ()=>{ // onclick set this sync as active (=visually highlighted)
                 if (this.active.local) this.active.local.classList.remove("active");
                 if (this.active.remote) this.active.remote.classList.remove("active");
                 this.active.local = sync_div;
@@ -90,6 +107,10 @@ class SyncSelection{
 
                 window.syncs.properties_display.set(this.uuid, local_dir, remote);
             };
+            remote_div.set_icon_spin = (spin)=>{
+                if (spin==true) icon.className = "fas fa-sync-alt fa-spin"
+                else icon.className = "fas fa-sync-alt"
+            }
 
             let span = document.createElement("span");
             span.innerHTML = add_break_to_path(remote);
@@ -98,12 +119,13 @@ class SyncSelection{
             remote_div.appendChild(span);
             remote_dirs.appendChild(remote_div);
             this.sync_list[local_dir][remote] = remote_div;
+            // remote_div.set_icon_spin(true)
         }
-
+        
         this.list_div.appendChild(sync_div)
     }
 
-    remove(uuid){
+    remove(uuid){ // remove sync
 
     }
 
@@ -115,8 +137,10 @@ class SyncSelection{
 
 
 
-
-
+// ######################
+//   PROPERTIES DISPLAY
+// ######################
+// sync properties of selected sync, located at bottom RHS
 class PropertiesDisplay{
     constructor(){
         this.container = document.getElementById("props_container");
@@ -177,9 +201,7 @@ class PropertiesDisplay{
         this.sync_ignore_info.set(uuid, local, remote);
         this.conflicts_info.set(uuid, local, remote);
     }
-}
-
-
+} 
 
 class Container{
     constructor(id){this.div = document.getElementById(id)}
@@ -295,6 +317,12 @@ class ConflictsInfo extends Container{
     window.callbacks.new_connection.add((uuid) => {
         window.syncs.conn_selection.add(uuid, window.data.connections[uuid]);
         window.syncs.sync_selections[uuid] = new SyncSelection(window.data.connections[uuid]);
+    })
+
+    window.callbacks.update_sync_state.add((uuid, local_dir, remote_dir, state) => {
+        console.log(uuid)
+        console.log(window.syncs.sync_selections[uuid])
+        window.syncs.sync_selections[uuid].sync_list[local_dir][remote_dir].set_icon_spin(state)
     })
 })();
 

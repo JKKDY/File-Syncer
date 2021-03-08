@@ -32,7 +32,8 @@ class NT_Code(NT_Enum): # (NT = Network)
     REQ_DIR_GRAPH = 130
     REQ_FILE = 140
     REQ_SYNC = 150
-    SYNC_DONE = 200
+    REQ_SYNC_START = 160
+    END_SYNC = 170
     
 class NT_MSG_TYPE(NT_Enum):
     UNDEF = 0xFF
@@ -43,6 +44,8 @@ class NT_MSG_TYPE(NT_Enum):
     FILE = 0x01
     
     
+    
+# TODO: add timeout to receive.
 
 class Socket:
     def __init__(self, sock=None):
@@ -66,7 +69,7 @@ class Socket:
         self._send(NT_MSG_TYPE.CODE, code.bytes())
         
     def send_int(self, num:int):
-        self._send(NT_MSG_TYPE.INT, num.to_bytes(ceil(log2(num)/8), byteorder='big'))
+        self._send(NT_MSG_TYPE.INT, int(num).to_bytes(ceil(log2(int(num) + 1)/8), byteorder='big')) # ceil(log2(int(num) + 1)/8) gets byte size
 
     def send_str(self, msg:str):
         self._send(NT_MSG_TYPE.STR, bytes(str(msg), ENCODING))
@@ -94,7 +97,7 @@ class Socket:
     def _recv_header(self, expected_type):
         if self._recv_msg_type is True: msg_type = NT_MSG_TYPE(int.from_bytes(self.socket.recv(CODE_SIZE), "big"))
         else:  msg_type = NT_MSG_TYPE.UNDEF
-        assert(expected_type & msg_type)
+        assert(expected_type & msg_type) # , f"Wrong message type! Expected {expected_type}, got {msg_type}"
         msg_len = int.from_bytes(self.socket.recv(HEADER_SIZE), "big")
         return msg_len
 

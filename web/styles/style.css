@@ -678,13 +678,17 @@
   grid-column: 1;
 }
 
+#Syncs .sync_selection .remote i .fa-sync-alt {
+  margin: auto;
+}
+
 #Syncs .sync_selection .remote span {
   -ms-grid-column: 2;
   grid-column: 2;
 }
 
 #Syncs .sync_selection .remote:hover {
-  color: #00CD69;
+  color: #FFF;
 }
 
 #Syncs .sync_selection .remote.active {
@@ -1384,5 +1388,35 @@ nav #indicator {
 .selection_list .list div.active {
   background-color: #2F3247;
   color: #00CD69;
+}
+
+.icn-spinner {
+  -webkit-animation: spin-animation 0.5s infinite;
+          animation: spin-animation 0.5s infinite;
+  display: inline-block;
+  background-color: black;
+  color: black;
+}
+
+@-webkit-keyframes spin-animation {
+  0% {
+    -webkit-transform: rotate(0deg);
+            transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+            transform: rotate(359deg);
+  }
+}
+
+@keyframes spin-animation {
+  0% {
+    -webkit-transform: rotate(0deg);
+            transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(359deg);
+            transform: rotate(359deg);
+  }
 }
 /*# sourceMappingURL=style.css.map */

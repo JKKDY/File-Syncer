@@ -160,14 +160,18 @@
         padding: 0.6vh 0;
         i{
             grid-column: 1;
-            // color:$accent_color3;
-        }
+            .fa-sync-alt{
+                margin: auto;
+            }
+        } 
         span{grid-column: 2;}
         transition: all $trans_time ease 0s;
-        &:hover{ color:$accent_color1; }
+        &:hover{ color:$font_color1}
     }
 
-    .remote.active{ color: $accent_color1; }
+    .remote.active{ 
+        color: $accent_color1; 
+    }
 }
 
 

@@ -344,6 +344,8 @@ class Callback{
 // TODO: make ignore patterns editable
 // TODO: make displaying connection info prettier
 // TODO: make connection properties editable
+// TODO: new sync callback
+// TODO: sync status update
 
 (async function(){
     "use strict";   
@@ -377,6 +379,7 @@ class Callback{
         window.callbacks.uuid_change = new Callback()
         window.callbacks.directory_graph_update = new Callback()
         window.callbacks.new_connection = new Callback()
+        window.callbacks.update_sync_state = new Callback()
 
         window.callbacks.directory_graph_update.add((path, graph) => {
             window.data.directories[path].update_graph(graph)
@@ -395,8 +398,10 @@ class Callback{
             await new_conn(uuid)
         })
 
+        window.callbacks.update_sync_state.add
+
     } finally {
-        window.navbar = new Navbar(); // try/finally is used so this also runs on live server
+        window.navbar = new Navbar(); // try/finally is used so this also runs w/o python backend
     }
 
 })();
@@ -425,4 +430,9 @@ function update_directory_graph(path, directory_graph){
 eel.expose(new_connection)
 function new_connection(uuid){
     window.callbacks.new_connection.call(uuid)
+}
+
+eel.expose(update_sync_state)
+function update_sync_state(uuid, local_dir, remote_dir, status){
+    window.callbacks.update_sync_state.call(uuid, local_dir, remote_dir, status)
 }

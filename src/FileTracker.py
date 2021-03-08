@@ -270,13 +270,13 @@ class FileTracker:
     """Stores tracked/manages tracked directories"""
     def __init__ (self, directories, logging_settings, data_path, glob_ign_ptn, update_callback):
         logger.info("Filetracker online")
-        self.directories_list = directories
+        self.directories_list = directories # data on directories to track
         self.logging_settings = logging_settings
         self.save_path = data_path
         self.update_callback = update_callback
         self.global_ign_patterns = glob_ign_ptn
     
-        self.directories = {}
+        self.directories = {} 
         for dir_path, dir_props in self.directories_list.items():
             self.directories[dir_path] = Directory(Path(dir_path), self.save_path, dir_props[DIR_IGNORE_KEY], self.global_ign_patterns, self.logging_settings, update_callback)
         
@@ -316,3 +316,6 @@ class FileTracker:
 
     def __iter__(self):
         return iter(self.directories)   
+    
+    def keys(self):
+        return self.directories.keys()

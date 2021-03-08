@@ -40,8 +40,9 @@ SESS_SYNCED_KEY = "synced"
 CFG_PORT_KEY = "port"
 CFG_UI_PORT_KEY = "ui_port"
 CFG_GLOB_IGN_KEY = "global_ign_patterns"
-CFG_SYNC_RATE = "default_sync_rate"
-CFG_PING_RATE = "default_ping_rate"
+CFG_SYNC_RATE_KEY = "default_sync_rate"
+CFG_PING_RATE_KEY = "default_ping_rate"
+CFG_SYNC_OK_TIMEOUT_KEY = "check_sync_ok_timeout"
 
 
 
@@ -294,9 +295,10 @@ class Config(JSON_File):
         self.port = self[CFG_PORT_KEY]
         self.ui_port = self[CFG_UI_PORT_KEY]
         
-        # self.default_ping_rate = self[CFG_PING_RATE] # check if connection is still alive 
-        # self.default_sync_rate = self[CFG_SYNC_RATE]
+        # self.default_ping_rate = self[CFG_PING_RATE_KEY] # check if connection is still alive 
+        # self.default_sync_rate = self[CFG_SYNC_RATE_KEY]
         # self.default_connect_rate = self["default_connect_rate"] # how often to try connect to other connections
+        self.sync_ok_timeout = self[CFG_SYNC_OK_TIMEOUT_KEY]
         
         self.global_ign_patterns = self[CFG_GLOB_IGN_KEY]
             

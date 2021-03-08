@@ -14,6 +14,7 @@ logger_name, logger = get_logger(__name__)
 # TODO: add encryption (diffie-hellman, RSA ...)
 # TODO: sync optimization; check if files have been moved/renamed etc
 # TODO: rotating filehandler for logger
+# TODO: no conflict handling
 
 
 class FileSyncer(Config):
@@ -28,7 +29,7 @@ class FileSyncer(Config):
         self.file_tracker = FileTracker(self.directories, self.logging_settings, self.data_path, \
                                         self.global_ign_patterns, self.update_directory_graph_callback)
         
-        server_callbacks = Callbacks(self.update_uuid_callback, self.update_status_callback)
+        server_callbacks = Callbacks(self.update_uuid_callback, self.update_status_callback, self.update_sync_status_callback)
         self.server = Server(self.hostname, self.ip, self.port, self.uuid, self.file_tracker, self.sessions, \
             self.connections, self.directories, self.logging_settings, server_callbacks)
         self.server_thread = Thread(target=self.server.start_server, name = "server_thread")   
@@ -46,15 +47,16 @@ class FileSyncer(Config):
             UI_Code.UUID_SYNC : self.sync
         })
         self.ui.start()
-        
-    def start_server(self):
-        self.server_thread.start()
     
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback): 
         self.shut_down()
+        
+        
+    def start_server(self):
+        self.server_thread.start()
     
     def shut_down(self):
         self.ui.shut_down()
@@ -63,43 +65,68 @@ class FileSyncer(Config):
         self.file_tracker.shut_down()
         logger.info("Filesyncer end")
         
+           
+    def get_uuids(self): 
+        return list(self.connections.keys())
         
-    def get_uuids(self): return list(self.connections.keys())
-        
-    def get_uuid_info(self, uuid): return self.connections[uuid].to_dict()
+    def get_uuid_info(self, uuid): 
+        return self.connections[uuid].to_dict()
      
-    def get_uuid_status(self, uuid): return 2 if uuid in self.server.clients else 0 
+    def get_uuid_status(self, uuid): 
+        return 2 if uuid in self.server.clients else 0 
     
     
-    def get_directories(self): return list(self.directories.keys())
+    def add_directory(self, directory):
+        pass
     
-    def get_directory_info(self, directory): return self.directories[directory].to_dict() 
+    def delete_directory(self, directory):
+        pass
+
     
-    def get_directory_graph(self, directory): return self.file_tracker[directory].to_dict()
+    def get_directories(self): 
+        return list(self.directories.keys())
+    
+    def get_directory_info(self, directory): 
+        return self.directories[directory].to_dict() 
+    
+    def get_directory_graph(self, directory): 
+        return self.file_tracker[directory].to_dict()
     
     
     def update_global_ignore(self, patterns): 
         self.file_tracker.update_glob_ignore(patterns)
         self[CFG_GLOB_IGN_KEY] = patterns
         
-    def update_directory_ignore(self, directory, patterns): self.file_tracker.update_dir_ignore(directory, patterns)
+    def update_directory_ignore(self, directory, patterns): 
+        self.file_tracker.update_dir_ignore(directory, patterns)
     
         
-    def add_connection(self, hostname, port, name): return self.connections.new_connection(hostname, port, name)
+    def add_connection(self, hostname, port, name): 
+        return self.connections.new_connection(hostname, port, name)
         
-    def connect(self, uuid): return self.server.connect(uuid)
+    def connect(self, uuid): 
+        return self.server.connect(uuid)
     
-    def disconnect(self, uuid): self.server.close_connection(uuid)
+    def disconnect(self, uuid): 
+        self.server.close_connection(uuid)
     
-    def sync(self, uuid, local, remote): self.server.clients[uuid].sync(local, remote)
+    def sync(self, uuid, local, remote, bidirectional=True, priority=-1): 
+        self.server.clients[uuid].queue_sync(local, remote, bidirectional, priority)
         
     
-    def update_uuid_callback(self, old_uuid, new_uuid): self.ui.notify(UI_Code.NOTF_UPDATE_UUID, old_uuid, new_uuid)
+    def update_uuid_callback(self, old_uuid, new_uuid): 
+        self.ui.notify(UI_Code.NOTF_UPDATE_UUID, old_uuid, new_uuid)
         
-    def update_status_callback(self, uuid): self.ui.notify(UI_Code.NOTF_UPDATE_STATUS, uuid, self.get_uuid_status(uuid)) 
+    def update_status_callback(self, uuid): 
+        self.ui.notify(UI_Code.NOTF_UPDATE_STATUS, uuid, self.get_uuid_status(uuid)) 
     
-    def update_directory_graph_callback(self, directory): self.ui.notify(UI_Code.NOTF_UPDATE_DIR_GRAPH, directory, self.file_tracker[directory].to_dict())
+    def update_directory_graph_callback(self, directory): 
+        self.ui.notify(UI_Code.NOTF_UPDATE_DIR_GRAPH, directory, self.file_tracker[directory].to_dict())
     
-    def new_connection_callback(self, uuid): self.ui.notify(UI_Code.NOTF_NEW_CONNECTION, uuid)
+    def new_connection_callback(self, uuid): 
+        self.ui.notify(UI_Code.NOTF_NEW_CONNECTION, uuid)
+    
+    def update_sync_status_callback(self, uuid, local, remote, state): 
+        self.ui.notify(UI_Code.NOTF_UPDATE_SYNC_STATE, uuid, local, remote, state)
 
     

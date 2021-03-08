@@ -5,6 +5,7 @@ import os
 import select
 import shutil
 import socket
+import time
 from collections import deque
 from threading import Event
 
@@ -21,37 +22,46 @@ logger_name, logger = get_logger(__name__)
      
 class SyncQueue:
     def __init__(self, sync_func):
-        self.queue = deque()
+        self.queue = []
         self.sync_func = sync_func
         self.running_event = Event()
         self.running_event.set()
         
-    def add_sync(self, *args, **kwargs):
+    def add_sync(self, priority, *args, **kwargs):
         if ((args, kwargs)) not in self.queue:
-            self.queue.append((args, kwargs))
+            self._add_sync(priority, args, kwargs)
             if self.running_event.is_set():
                 self.run_next()
             self.running_event.wait()
+            
+    def _add_sync(self, priority, args, kwargs):
+        if priority == -1:  self.queue.append((args, kwargs))
+        else:  self.queue.insert(min(priority, len(self.queue)), (args, kwargs))
      
     def run_next(self):
         self.running_event.clear()
         while self.queue:
-            args, kwargs = self.queue.popleft()
-            self.sync_func(*args, **kwargs)
+            args, kwargs = self.queue.pop(0)
+            if not self.sync_func(*args, **kwargs): # return=False -> syncing is rn not possble , try again later
+                if len(self.queue) == 0: time.sleep(0.05) # so were not attempting to sync 1000s of time per second
+                self.running_event.set()
+                self._add_sync(0, args, kwargs)
         self.running_event.set()
         
     
 
 
 class Client(Socket):
-    def __init__(self, uuid, sessions, file_tracker, log_settings):
+    def __init__(self, uuid, sessions, file_tracker, log_settings, directory_locks, sync_status_callback):
         super().__init__()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.uuid = uuid
         self.file_tracker = file_tracker
-        self.sync_queue = SyncQueue(self._sync_directories)
+        self.sync_queue = SyncQueue(self._sync)
         self.sessions = sessions
         self.logging_settings = log_settings
+        self.directory_locks = directory_locks
+        self.sync_status_callback = sync_status_callback
         
         # will be initilized in self.connect
         self.logger = None 
@@ -59,6 +69,7 @@ class Client(Socket):
         self.server_port = None
         self.server_uuid = None
         self.connected = False
+        
         
     def connect(self, hostname, port):
         self.server_hostname, self.server_port = hostname, port
@@ -85,8 +96,10 @@ class Client(Socket):
         super().close()
         self.logger.info("Client socket closed")  
     
+    
     def conn_str(self): # used for logging
         return f"{self.server_uuid} @ (hostname: {self.server_hostname}, port: {self.server_port})"
+       
        
     def req_dir_list(self): # is not used anywhere?
         self.send_code(NT_Code.REQ_DIR_LST)
@@ -106,15 +119,18 @@ class Client(Socket):
         self.logger.debug(f"Receive directory graph")
         return self.recv_obj()    
     
-    def sync(self, local_dir, remote_dir, bi_directional_sync=True, time_out=None, add_to_queue=True):
+    def queue_sync(self, local_dir, remote_dir, bi_directional_sync=True, priority=-1): #priority: -1: queue at last, 0: queue first
+        # TODO implement priority system
         self.logger.debug(f"Add to queue: sync local directory '{local_dir}' with remote directory '{remote_dir}'")
-        self.sync_queue.add_sync(local_dir, remote_dir, bi_directional_sync, time_out)
+        self.sync_queue.add_sync(priority, local_dir, remote_dir, bi_directional_sync)
     
     def resolve_conflict(self, local_folder, remote_folder, path, is_dir):
         print(f"Conflict: \n local folder: {local_folder} \n remote_folder: {remote_folder} \n path: {path}")
         
-    def _sync_directories(self, local_dir, remote_dir, bi_directional_sync, time_out):
+    def _sync(self, local_dir, remote_dir, bi_directional_sync):
         self.logger.info(f"Now syncing local directory '{local_dir}' with remote directory '{remote_dir}'")
+        
+        if not self._init_sync(local_dir, remote_dir): return False
 
         self.file_tracker[local_dir].update()
         local_graph = copy.deepcopy(self.file_tracker[local_dir].root)
@@ -142,14 +158,40 @@ class Client(Socket):
         create(local_graph)
         
         self.file_tracker[local_dir].update(callback=True)
+                
+        self.directory_locks[local_dir].release()
+        self.sync_status_callback(self.server_uuid, local_dir, remote_dir, 0)
+        
+        self.send_code(NT_Code.END_SYNC)
+        self.send_str(remote_dir)
+        self.send_str(local_dir)
         
         if bi_directional_sync:
             self.send_code(NT_Code.REQ_SYNC)
             self.send_str(remote_dir)
             self.send_str(local_dir)
-            # self.send_obj(time_out)
             
         self.sessions.add_sync(self.server_uuid, local_dir, remote_dir)
         self.logger.info("Sync Done")  
+        
+        return True
+    
+    
+    def _init_sync(self, local_dir, remote_dir):
+        # check if local_dir is available for syncing
+        if not self.directory_locks[local_dir].acquire(timeout=3): 
+            self.logger.info(f"Local directory {local_dir} is in use")
+            return False
+        
+        # check if remote dir is available for syncing
+        self.send_code(NT_Code.REQ_SYNC_START) 
+        self.send_str(remote_dir)
+        self.send_str(local_dir)
+        if not self.recv_int():
+            self.logger.info(f"Server @ {self.server_uuid} is busy")
+            return False
+        
+        self.sync_status_callback(self.server_uuid, local_dir, remote_dir, 1)
+        return True
                         
                         

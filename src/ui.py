@@ -27,6 +27,7 @@ class UI_Code(IntEnum):
     NOTF_UPDATE_STATUS = auto()
     NOTF_UPDATE_DIR_GRAPH = auto()
     NOTF_NEW_CONNECTION = auto()
+    NOTF_UPDATE_SYNC_STATE = auto()
     
     ADD_CONNECTION = auto()
     UUID_CONNECT = auto()
@@ -189,7 +190,7 @@ class UiFrontend:
                 if code == UI_Code.UI_CLOSE: break
                 args = self.notif_socket.recv()
                 fkt = self.callbacks[code]
-                fkt(*args) if args !=() else fkt()
+                fkt(*args) if args != () else fkt()
             except socket.error:
                 print("shut down event loop")
                 break
