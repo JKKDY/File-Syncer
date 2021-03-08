@@ -8,6 +8,7 @@ import socket
 import time
 from collections import deque
 from threading import Event
+from send2trash import send2trash 
 
 from imohash import hashfile
 
@@ -144,7 +145,7 @@ class Client(Socket):
                 if file.exists and (not file.full_path.exists() or hashfile(file.full_path) != file.hash):
                     self.req_file(remote_dir, file.location(), local_dir, file.location())
                 elif not file.exists and file.full_path.exists():
-                    file.full_path.unlink()
+                    send2trash(str(file.full_path))
                     self.logger.info(f"Delete file '{file.location()}' in '{local_dir}'")
             for folder in graph.folders.values():
                 if folder.exists:
@@ -153,7 +154,7 @@ class Client(Socket):
                         self.logger.info(f"Created folder '{folder.location()}' in '{local_dir}'")
                     create(folder)
                 elif folder.full_path.exists():
-                    shutil.rmtree(folder.full_path)
+                    send2trash(str(folder.full_path))
                     self.logger.info(f"Delete folder '{folder.location()}' in '{local_dir}'")
         create(local_graph)
         
