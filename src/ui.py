@@ -118,11 +118,11 @@ class UiBackend:
         while not self.shutdown:
             try:
                 self.socket.listen(2)
-                self.req_socket = Socket(self.socket.accept()[0]) # handles requests from frontend
-                self.notif_socket = Socket(self.socket.accept()[0]) # notifes fronend
+                self.req_socket = Socket(self.socket.accept()[0]) # handles requests from front end
+                self.notif_socket = Socket(self.socket.accept()[0]) # notifes front end
                 self.connected = True
             except socket.error as e:
-                print("shut start loop", e)
+                print("shut start loop1", e)
                 self.connected = False
                 return
             
@@ -134,7 +134,7 @@ class UiBackend:
                     fkt = self.callbacks[code]
                     self.req_socket.send(fkt(*args) if args !=() else fkt())
                 except socket.error as e:
-                    print("shut down event loop", e)
+                    print("shut down event loop2", e)
                     break
             self.connected = False
             
@@ -192,7 +192,8 @@ class UiFrontend:
                 fkt = self.callbacks[code]
                 fkt(*args) if args != () else fkt()
             except socket.error:
-                print("shut down event loop")
+                print("From ui.py: shut down event loop")
+                print(socket.error)
                 break
         
     def close(self):

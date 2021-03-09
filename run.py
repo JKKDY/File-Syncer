@@ -7,8 +7,11 @@ import webGUI
 
 
 if __name__ == "__main__":
-    with FileSyncer(Path("config.json")) as syncer:
-        syncer.start_server()
-        webGUI.start() 
+    try:
+        with FileSyncer(Path("config.json")) as syncer:
+            syncer.start_server()
+            webGUI.start() 
+    except Exception as e:
+        print(e)
 
 

@@ -89,7 +89,8 @@ class Client(Socket):
     def close(self):
         if self.connected:
             self.connected = False
-            self.send_code(NT_Code.END_CONN)
+            try: self.send_code(NT_Code.END_CONN)
+            except ConnectionResetError: pass
             self.logger.info(f"Client disconnected from {self.conn_str()}")
             self.sessions.end(self.server_uuid)
             self.logger.info("End session")

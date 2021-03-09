@@ -132,9 +132,10 @@ class Server():
             return False 
             
     def close_connection(self, uuid):
-        logger.info(f"Disconnecting from {uuid} @ ({self.connections[uuid][CONN_HOSTNAME_KEY]}, {self.connections[uuid][CONN_PORT_KEY]})")
-        self.clients.pop(uuid).close()
-        self.callbacks.status_change(uuid)
+        if uuid in self.clients:
+            logger.info(f"Disconnecting from {uuid} @ ({self.connections[uuid][CONN_HOSTNAME_KEY]}, {self.connections[uuid][CONN_PORT_KEY]})")
+            self.clients.pop(uuid).close()
+            self.callbacks.status_change(uuid)
         
     def shut_down(self):
         self.will_shut_down = True
@@ -165,14 +166,20 @@ class Server():
                     NT_Code.END_SYNC        : self._end_sync,
                     NT_Code.END_CONN        : self._close_connection
                 }[code](uuid, conn)
-            except OSError:
-                self.clients[uuid].logger.exception(f"OSError in handle_connection @ {uuid}. Will terminate thread")
+            except ConnectionResetError:
+                self.clients[uuid].logger.info(f"An existing connection was forcibly closed by the remote host @ {uuid}. Will terminate thread")
                 break
+            except OSError:
+                self.clients[uuid].logger.exception(f"OSError in Server.handle_connection @ {uuid}. Will terminate thread")
+                break
+        self.close_connection(uuid)
+            
                 
     
     def _close_connection(self, uuid, conn):
         conn.close() # must be closed before client closed connection
         if uuid in self.clients: 
+            self.clients[uuid].logger.info(f"remote host @ {uuid} disconnected")
             self.clients.pop(uuid).close()
             self.callbacks.status_change(uuid)
     
