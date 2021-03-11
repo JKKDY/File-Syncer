@@ -82,4 +82,3 @@ class Timer: # for benchmark purposes
     
     
     
-

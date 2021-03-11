@@ -134,7 +134,8 @@ class ConnectionInfoDisplay{
         this.uuid_field.innerHTML = row.uuid
         this.hostname_field.innerHTML = info["hostname"]
         this.port_field.innerHTML = info["port"]
-        this.auto_connect_field.innerHTML = info["auto_connect"] // set str in webGUI.py
+        if (info["auto_connect"] === true) this.auto_connect_field.innerHTML = "Yes"
+        else this.auto_connect_field.innerHTML = "No"
 
         this.directories_list.innerHTML = ""
         for (const [dir_path, dir_name] of Object.entries(info["directories"])){

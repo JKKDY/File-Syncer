@@ -2,7 +2,8 @@ from enum import IntEnum
 from pathlib import Path
 from threading import Thread
 
-from src.Config import get_logger, ConnectionsList, DirectoriesList, Sessions, Config, get_uuid, CFG_GLOB_IGN_KEY
+from src.Config import get_logger, ConnectionsList, DirectoriesList, Sessions, Config, get_uuid, \
+    CFG_GLOB_IGN_KEY, CONN_AUTO_CONNECT_KEY
 from src.FileTracker import FileTracker
 from src.Server import Server, Callbacks
 from src.ui import UiBackend, UI_Code
@@ -25,6 +26,7 @@ class FileSyncer(Config):
         self.directories = DirectoriesList(self.data_path/"directories.json")
         self.sessions = Sessions(self.data_path/"sessions.json")
         self.uuid = get_uuid(self.data_path)
+        self.will_shut_down = False
         
         self.file_tracker = FileTracker(self.directories, self.logging_settings, self.data_path, \
                                         self.global_ign_patterns, self.update_directory_graph_callback)
@@ -32,7 +34,9 @@ class FileSyncer(Config):
         server_callbacks = Callbacks(self.update_uuid_callback, self.update_status_callback, self.update_sync_status_callback)
         self.server = Server(self.hostname, self.ip, self.port, self.uuid, self.file_tracker, self.sessions, \
             self.connections, self.directories, self.logging_settings, server_callbacks)
-        self.server_thread = Thread(target=self.server.start_server, name = "server_thread")   
+        self.server_thread = Thread(target=self.server.start_server, name ="server_thread") 
+        
+        # self.auto_connect_thread = Thread(target=self._auto_connect, name="auto_connect_thread")  
         
         self.ui = UiBackend(self.ui_port, {
             UI_Code.REQ_UUIDS : self.get_uuids,
@@ -59,11 +63,28 @@ class FileSyncer(Config):
         self.server_thread.start()
     
     def shut_down(self):
+        self.will_shut_down = True
         self.ui.shut_down()
         self.server.shut_down()
         self.server_thread.join()
         self.file_tracker.shut_down()
+        # self.stop_auto_connect()
         logger.info("Filesyncer end")
+        
+        
+    def start_auto_connect(self):
+        self.auto_connect_thread.start()
+        
+    def stop_auto_connect(self):
+        self.auto_connect_thread.join()
+        
+    def auto_connect(self):
+        for uuid in self.connections:
+            if self.connections[uuid][CONN_AUTO_CONNECT_KEY] is True:
+                self.connect(uuid)
+        
+             
+         
         
            
     def get_uuids(self): 
@@ -129,4 +150,5 @@ class FileSyncer(Config):
     def update_sync_status_callback(self, uuid, local, remote, state): 
         self.ui.notify(UI_Code.NOTF_UPDATE_SYNC_STATE, uuid, local, remote, state)
 
+    
     

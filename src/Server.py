@@ -45,6 +45,7 @@ class Server():
         self.port = port
         self.uuid = uuid
         
+        self.connections_in_progress = set()
         self.clients = {}
         self.client_threads = {}
         self.active_syncs = {}
@@ -100,12 +101,21 @@ class Server():
                 self.will_shut_down = True        
                 
         
-    def connect(self, uuid):        
-        assert(uuid not in self.clients)
+    def connect(self, uuid): 
         hostname = self.connections[uuid][CONN_HOSTNAME_KEY]
         port = self.connections[uuid][CONN_PORT_KEY]
+        
+        # check if already connected or connection attempt in progress
+        if uuid in self.clients: return True 
+        if (port, hostname) not in self.connections_in_progress: 
+            self.connections_in_progress.add((port, hostname))
+        else: return None
+        
         logger.info(f"Initiate connection to {uuid} @ ({hostname}, {port})")
-        return self._connect(uuid, hostname, port)
+        conn_succsess = self._connect(uuid, hostname, port)
+        
+        self.connections_in_progress.remove((port, hostname))
+        return conn_succsess
     
     def _connect(self, uuid, hostname, port):
         try:

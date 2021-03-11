@@ -8,9 +8,9 @@ import socket
 import time
 from collections import deque
 from threading import Event
-from send2trash import send2trash 
 
 from imohash import hashfile
+from send2trash import send2trash
 
 from src.Config import DEFAULT_TIME, get_logger
 from src.Network import NT_Code, Socket
