@@ -111,11 +111,11 @@ class Server():
             self.connections_in_progress.add((port, hostname))
         else: return None
         
-        logger.info(f"Initiate connection to {uuid} @ ({hostname}, {port})")
-        conn_succsess = self._connect(uuid, hostname, port)
+        logger.debug(f"Initiate connection attempt to {uuid} @ ({hostname}, {port})")
+        conn_success = self._connect(uuid, hostname, port)
         
         self.connections_in_progress.remove((port, hostname))
-        return conn_succsess
+        return conn_success
     
     def _connect(self, uuid, hostname, port):
         try:
@@ -137,7 +137,7 @@ class Server():
             self.callbacks.status_change(server_uuid)
             return server_uuid
         except socket.error as e:
-            logger.info(f"Failed connection attempt to {uuid} @ ({hostname}, {port}): {e}")
+            logger.debug(f"Failed connection attempt to {uuid} @ ({hostname}, {port}): {e}")
             self.callbacks.status_change(uuid)
             return False 
             

@@ -42,19 +42,19 @@ def rel_path(path:os.PathLike, base_path:os.PathLike) -> Path:
 # from https://medium.com/greedygame-engineering/an-elegant-way-to-run-periodic-tasks-in-python-61b7c477b679
 class RepeatedJob(threading.Thread):
     """Repeats *execute* every *interval* seconds"""
-    def __init__(self, interval, execute, name, args=[], kwargs={}):
+    def __init__(self, interval, target, name, args=[], kwargs={}):
         threading.Thread.__init__(self)
         self.daemon = False
         self.name = name
         self.stopped = threading.Event()
         self.interval = interval
-        self.execute = execute
+        self.execute = target
         self.args = args
         self.kwargs = kwargs
         
     def stop(self):
         self.stopped.set()
-        self.join()
+        if self.is_alive(): self.join()
         
     def run(self):
         while not self.stopped.wait(self.interval):

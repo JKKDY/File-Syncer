@@ -7,7 +7,7 @@
 
     "default_ping_rate":10,
     "default_sync_rate":60,
-    "default_connect_rate": 30,
+    "default_connect_rate": 3,
 
     "global_ign_patterns": [
         ".*",

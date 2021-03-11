@@ -82,7 +82,6 @@ class Client(Socket):
         self.sessions.start(self.server_uuid)
         
         self.logger = self.logging_settings.create_logger(f"{logger_name}.Client->{self.server_uuid}", f"traffic@{self.server_uuid}.log")
-        self.logger.info("Start session")
         self.logger.info(f"Client connected to {self.conn_str()}")
         return uuid, dir_info
     
@@ -93,7 +92,6 @@ class Client(Socket):
             except ConnectionResetError: pass
             self.logger.info(f"Client disconnected from {self.conn_str()}")
             self.sessions.end(self.server_uuid)
-            self.logger.info("End session")
             logger.info(f"Shut down Client connected to {self.conn_str()}")
         super().close()
         self.logger.info("Client socket closed")  

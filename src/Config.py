@@ -248,7 +248,7 @@ class Config(JSON_File):
     class LoggingSettings:
         def __init__(self, logs_path:Path):
             self.logs_path = logs_path
-            self.logging_level = logging.DEBUG #logging.INFO
+            self.logging_level = logging.INFO #logging.DEBUG 
             
             #TODO add filter such that FS_root is not eliminated from logger names in log files, see:https://stackoverflow.com/questions/46954855/python-logging-format-how-to-print-only-the-last-part-of-logger-name
             self.formater = logging.Formatter("[{asctime}] [{levelname:<6}] {name} : {message}", style="{")
@@ -297,7 +297,7 @@ class Config(JSON_File):
         
         # self.default_ping_rate = self[CFG_PING_RATE_KEY] # check if connection is still alive 
         # self.default_sync_rate = self[CFG_SYNC_RATE_KEY]
-        # self.default_connect_rate = self["default_connect_rate"] # how often to try connect to other connections
+        self.auto_connect_rate = self["default_connect_rate"] # how often to try connect to other connections
         self.sync_ok_timeout = self[CFG_SYNC_OK_TIMEOUT_KEY]
         
         self.global_ign_patterns = self[CFG_GLOB_IGN_KEY]
