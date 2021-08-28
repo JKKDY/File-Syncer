@@ -28,11 +28,13 @@ class UI_Code(IntEnum):
     NOTF_UPDATE_DIR_GRAPH = auto()
     NOTF_NEW_CONNECTION = auto()
     NOTF_UPDATE_SYNC_STATE = auto()
+    NOTF_NEW_CONFLICT = auto()
     
     ADD_CONNECTION = auto()
     UUID_CONNECT = auto()
     UUID_DISCONNECT = auto()
     UUID_SYNC = auto()
+    UUID_RESOLVE_CONFLICT = auto()
     
     BEGINN_REQ = auto()
     END_REQ = auto()
@@ -122,7 +124,7 @@ class UiBackend:
                 self.notif_socket = Socket(self.socket.accept()[0]) # notifes front end
                 self.connected = True
             except socket.error as e:
-                print("shut start loop1", e)
+                print("shut down start loop1", e)
                 self.connected = False
                 return
             
@@ -169,8 +171,11 @@ class UiFrontend:
         self.event_thread = Thread(target=self.event_loop)
         self.ready.set()
 
-    def recv(self): return self.notif_socket.recv()
-    def send(self, *data): self.notif_socket.send(*data)
+    def recv(self): 
+        return self.notif_socket.recv()
+    
+    def send(self, *data): 
+        self.notif_socket.send(*data)
         
     def request(self, code, *args):
         with self.lock:
@@ -199,5 +204,6 @@ class UiFrontend:
     def close(self):
         self.req_socket.send_code(UI_Code.UI_CLOSE)
         self.req_socket.close()
+        self.notif_socket.close()
         self.event_thread.join()
         

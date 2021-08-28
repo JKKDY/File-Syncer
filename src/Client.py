@@ -6,17 +6,21 @@ import select
 import shutil
 import socket
 import time
+from enum import IntEnum, auto
 from collections import deque
-from threading import Event
+from threading import Event, local
 
 from imohash import hashfile
 from send2trash import send2trash
 
 from src.Config import DEFAULT_TIME, get_logger
 from src.Network import NT_Code, Socket
-from src.utils import update_with_nested_dict
+from src.utils import copy_name, NestedDict
+from src.Codes import CONFLICT_POLICY, RESOLVE_POLICY
 
 logger_name, logger = get_logger(__name__)
+
+
 
 
 
@@ -44,16 +48,52 @@ class SyncQueue:
         while self.queue:
             args, kwargs = self.queue.pop(0)
             if not self.sync_func(*args, **kwargs): # return=False -> syncing is rn not possble , try again later
-                if len(self.queue) == 0: time.sleep(0.05) # so were not attempting to sync 1000s of time per second
+                if len(self.queue) == 0: time.sleep(0.05) # so were not attempting to sync 1000s of s per second
                 self.running_event.set()
                 self._add_sync(0, args, kwargs)
         self.running_event.set()
         
     
+    
+    
+class Conflicts:
+    class Conflict:
+        def __init__( local_obj, remote_obj, self, is_dir, conflict_type) -> None:
+            self.local_dir = local_obj.dir_path
+            self.remote_dir = remote_obj.dir_path
+            self.rel_path = local_obj.rel_path
+            self.is_dir = is_dir
+            self.conflict_type = conflict_type
+            self.local_modif_time = local_obj.last_modif_time
+            self.remote_modif_time = remote_obj.last_modif_time
+            self.resolve_policy=None
+            
+    def __init__(self) -> None:
+        self.conflicts = NestedDict()
+        self.resolve_events = NestedDict()
+
+    def register_conflict(self, local_dir, remote_dir, is_dir, local_dir_elem, remote_dir_elem, conflict_type) -> None:
+        self.conflicts[local_dir][remote_dir][local_dir_elem.rel_path][is_dir] = self.Conflict(local_dir_elem, remote_dir_elem, is_dir, conflict_type)
+        self.resolve_events[local_dir][remote_dir][local_dir_elem.rel_path][is_dir] = Event()
+
+    def set_resolve_policy(self, local_dir, remote_dir, rel_path, is_dir, resolve_policy):
+        self.conflicts[local_dir][remote_dir][rel_path][is_dir].resolve_policy = resolve_policy
+        self.resolve_events[local_dir][remote_dir][rel_path][is_dir].set()
+        
+    def is_resolved(self, local_dir, remote_dir, rel_path, is_dir):
+        return self.conflicts[local_dir][remote_dir][rel_path][is_dir].resolve_policy is not None
+    
+    def wait_for_resolve(self, local_dir, remote_dir, rel_path, is_dir):
+        self.resolve_events[local_dir][remote_dir][rel_path][is_dir].wait()
+        return self.conflicts[local_dir][remote_dir][rel_path][is_dir].resolve_policy
+        
+    def delete(self, local_dir, remote_dir, rel_path, is_dir):
+        del self.conflicts[local_dir][remote_dir][rel_path][is_dir]  
+    
 
 
 class Client(Socket):
-    def __init__(self, uuid, sessions, file_tracker, log_settings, directory_locks, sync_status_callback):
+    def __init__(self, uuid, sessions, file_tracker, log_settings, directory_locks, sync_status_callback, new_conflict_callback):
         super().__init__()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.uuid = uuid
@@ -63,6 +103,8 @@ class Client(Socket):
         self.logging_settings = log_settings
         self.directory_locks = directory_locks
         self.sync_status_callback = sync_status_callback
+        self.new_conflict_callback = new_conflict_callback
+        self.conflicts = Conflicts()
         
         # will be initilized in self.connect
         self.logger = None 
@@ -119,15 +161,50 @@ class Client(Socket):
         self.logger.debug(f"Receive directory graph")
         return self.recv_obj()    
     
-    def queue_sync(self, local_dir, remote_dir, bi_directional_sync=True, priority=-1): #priority: -1: queue at last, 0: queue first
+    def queue_sync(self, local_dir, remote_dir, conflict_policy, default_resolve, bi_directional_sync, priority=-1): #priority: -1: queue at last, 0: queue first
         # TODO implement priority system
         self.logger.debug(f"Add to queue: sync local directory '{local_dir}' with remote directory '{remote_dir}'")
-        self.sync_queue.add_sync(priority, local_dir, remote_dir, bi_directional_sync)
+        self.sync_queue.add_sync(priority, local_dir, remote_dir, conflict_policy, default_resolve, bi_directional_sync)
     
-    def resolve_conflict(self, local_folder, remote_folder, path, is_dir):
-        print(f"Conflict: \n local folder: {local_folder} \n remote_folder: {remote_folder} \n path: {path}")
+    
+    def get_conflict_info(self, local_dir, remote_dir, rel_path, is_dir):
+        return self.conflicts.conflicts[(local_dir, remote_dir, rel_path, is_dir)]
+    
+    def resolve_conflict(self, local_dir_path, remote_dir_path, is_dir, rel_path, resolve_policy):
+        self.conflicts.resolve_conflict(local_dir_path, remote_dir_path, is_dir, rel_path, resolve_policy)
         
-    def _sync(self, local_dir, remote_dir, bi_directional_sync):
+
+    def create_conflict_handler(self, local_dir, remote_dir, conflict_policy, default_resolve): # local and remote are the folders being synced    
+        def handle_conflict(local_folder, remote_folder, rel_path, is_dir, name, conflict_type): # local_dir and remote_dir are the folders where the conflict is happening    
+            local = local_folder.folders if is_dir else local_folder.files
+            remote = remote_folder.folders if is_dir else remote_folder.files
+            
+            def resolve_conflict(resolve_policy): # name is file or folder name
+                if resolve_policy is RESOLVE_POLICY.REPLACE_LOCAL:
+                    local[name] = remote[name]
+                if resolve_policy is RESOLVE_POLICY.USE_NEWEST:
+                    if remote[name].last_modif_time > local[name].last_modif_time: 
+                        local[name] = remote
+                if resolve_policy is RESOLVE_POLICY.CREATE_COPY:
+                    ending = "" if is_dir else "." + name.split(".")[-1]
+                    copy = copy_name(name[:-len(ending)], ending, local)         
+                    local[copy] = local[name]
+                    local[name] = remote[name]
+                self.conflicts.delete(local_dir, remote_dir, rel_path, is_dir)
+                        
+            if resolution := self.conflicts.is_resolved(local_dir, remote_dir, rel_path, is_dir):
+                resolve_conflict(resolution)
+            elif conflict_policy is CONFLICT_POLICY.PROCEED_AND_RECORD:
+                self.conflicts.register_conflict(local_dir, remote_dir, rel_path, is_dir, local[name], remote[name], conflict_type)
+            elif conflict_policy is CONFLICT_POLICY.WAIT_FOR_RESOLVE:
+                self.conflicts.register_conflict(local_dir, remote_dir, rel_path, is_dir, local[name], remote[name], conflict_type)
+                resolve_conflict(self.conflicts.wait_for_resolve())
+            elif conflict_policy is CONFLICT_POLICY.USE_DEFAULT_RESOLVE:
+                resolve_conflict(default_resolve)
+                
+        return handle_conflict    
+        
+    def _sync(self, local_dir, remote_dir, conflict_policy, default_resolve, bi_directional_sync):
         self.logger.info(f"Now syncing local directory '{local_dir}' with remote directory '{remote_dir}'")
         
         if not self._init_sync(local_dir, remote_dir): return False
@@ -137,7 +214,7 @@ class Client(Socket):
         remote_graph = self.req_dir_graph(remote_dir)
         last_sync_time = self.sessions.last_sync(self.server_uuid, local_dir, remote_dir)
         
-        local_graph.merge(remote_graph, last_sync_time, self.resolve_conflict)
+        local_graph.merge(remote_graph, last_sync_time, self.create_conflict_handler(local_dir, remote_dir, conflict_policy, default_resolve))
         
         def create(graph): # graph = merged graph; this is how the directory being synced should look like
             for file in graph.files.values():

@@ -14,6 +14,7 @@ from imohash import hashfile
 
 from src.Config import DATE_TIME_FORMAT, DEFAULT_TIME, DIR_IGNORE_KEY, get_logger
 from src.utils import hash_word, now, rel_path
+from src.Codes import CONFLICT_TYPE, RESOLVE_POLICY
 
 logger_name, logger = get_logger(__name__)
 
@@ -42,9 +43,16 @@ class DirectoryElement:
         self._deleted = time
         self._created = DEFAULT_TIME
         
-    def update(self):
-        raise NotImplementedError # to override
+    def update(self): raise NotImplementedError # to override
+    
+    def is_modified(self): raise NotImplementedError # to override
+    
+    @property
+    def rel_path(self) -> Path: return self.location()
         
+    @property
+    def last_modif_time(self) -> datetime.datetime: raise NotImplementedError # to override
+    
     @property
     def full_path(self) -> Path: return self.dir_path / self.location()
     
@@ -60,25 +68,31 @@ class DirectoryElement:
     
     
 class File(DirectoryElement):
-        def __init__(self, rel_path, dir_path, update_on_creation=True):
-            super().__init__(rel_path, dir_path)
-            self.hash = 0
-            if update_on_creation: self.update()
+    def __init__(self, rel_path, dir_path, update_on_creation=True):
+        super().__init__(rel_path, dir_path)
+        self.hash = 0
+        if update_on_creation: self.update()
+        
+    @property
+    def last_modif_time(self) -> datetime.datetime: 
+        return max(datetime.datetime.utcfromtimestamp(self.full_path.stat().st_mtime), self._created)
+    
+    def update(self):
+        if not self.exists: self.created()
+        # update hash if file has been modified since last update
+        if (new_hash := hashfile(self.full_path)) != self.hash:
+            self.hash = new_hash
             
-        def update(self):
-            if not self.exists: self.created()
-            # update hash if file has been modified since last update
-            if (new_hash := hashfile(self.full_path)) != self.hash:
-                self.hash = new_hash
-                
-        def is_modified(self, time) -> bool:
-            """ returns boolean value wether file has been modified during the time span between now and *time*"""
-            if self.full_path.exists():
-                return max(datetime.datetime.utcfromtimestamp(self.full_path.stat().st_mtime), self._created) > time
-            else: 
-                return self._created > time #? shouldnt it be self._deleted?
+    def is_modified(self, time) -> bool:
+        """ returns boolean value wether file has been modified during the time span between now and *time*"""
+        if self.full_path.exists(): return self.last_modif_time > time
+        else: return self._deleted > time  # self._created > time #? shouldnt it be self._deleted?
             
    
+   
+   
+   
+
 
 #######################
 #       FOLDER
@@ -102,6 +116,10 @@ class Folder(DirectoryElement):
         for file in self.files.values(): file.deleted()
         for folder in self.folders.values(): folder.deleted()
         
+    @property
+    def last_modif_time(self) -> datetime.datetime: 
+        return max(self._created, *[obj.last_modif_time for obj in {**self.folders, **self.files}.values()])
+    
     def is_modified(self, time) -> bool:
         # creating a folder also counts as modifying it
         if self._created > time: return True
@@ -167,21 +185,21 @@ class Folder(DirectoryElement):
                 
                     if file not in self.files:
                         # self does not contain *file*
-                        self.files[file] = File(other.files[file].location(), self.dir_path, False)
+                        self.files[file] = File(other.files[file].rel_path, self.dir_path, False)
                         
                     elif self.files[file].hash != other.files[file].hash and other.files[file].is_modified(last_time_synced): 
                         # self contains *file* but their contents are different and other.file has been modified since last sync
                         if self.files[file].is_modified(last_time_synced):
                             # both have been modifed since last sync -> conflict
-                            conflict_callback(self, other, file, False)      
+                            conflict_callback(self, other, self.files[file].rel_path, False, file, CONFLICT_TYPE.MODIF_CONFLICT) 
                         else:
-                            self.files[file] = File(other.files[file].location(), self.dir_path, False)
+                            self.files[file] = File(other.files[file].rel_path, self.dir_path, False)
                             
                 else: # other.file has been deleted
                     if file in self.files:
                         if self.files[file].is_modified(last_time_synced):
                             # other.file has been deleted but self.file has been modified -> conflict
-                            conflict_callback(self, other, file, False)
+                            conflict_callback(self, other,  self.files[file].rel_path, False, file, CONFLICT_TYPE.DELETE_CONFLICT)
                         else:
                             self.files[file].deleted()
                             
@@ -200,7 +218,7 @@ class Folder(DirectoryElement):
                     if folder in self.folders: 
                         if self.folders[folder].is_modified(last_time_synced):
                             # other.folder has been deleted but self.folder has been modified -> conflict
-                            conflict_callback(self, other, folder, True)
+                            conflict_callback(self, other, self.folders[folder].rel_path , True, folder, CONFLICT_TYPE.DELETE_CONFLICT)
                         else:
                             self.folders[folder].deleted()
                             
@@ -319,3 +337,4 @@ class FileTracker:
     
     def keys(self):
         return self.directories.keys()
+

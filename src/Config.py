@@ -28,6 +28,8 @@ SYNC_AUTO_KEY = "auto_sync"
 SYNC_BIDIR_KEY = "bidirectional"
 SYNC_LOC_IGN_KEY = "local_ignore"
 SYNC_SYNCED_IGN_KEY = "synced_ignore"
+SYNC_CONFLICT_POLICY_KEY = "conflict_policy"
+SYNC_RESOLVE_POLICY_KEY = "default_resolve_policy"
 
 DIR_NAME_KEY = "name"
 DIR_IGNORE_KEY = "ignore"
@@ -53,7 +55,7 @@ def get_logger(name):
 
 
 #! important: auto save only triggers with dict. with other data containers it will not trigger a save
-
+#? this dct wrapper class isnt even necessary? -> look into later if it can be eliminated 
 class DictWrapper:
     def __init__(self, auto_save, save_event=None,):
         self._content = dict()
@@ -139,7 +141,7 @@ class JSON_File(DictWrapper):
    
    
    
-   
+
    
 
 def temp_uuid(hostname, port):
@@ -167,16 +169,23 @@ class ConnectionsList(JSON_File):
         if local_dir in self[uuid][CONN_SYNCS_KEY] and remote_dir in self[uuid][CONN_SYNCS_KEY][local_dir]: 
             return True
         else: return False
+        
+    def get_sync_conflict_policy(self, uuid, local_dir, remote_dir):
+        return self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir][SYNC_CONFLICT_POLICY_KEY]
      
-    def add_sync(self, uuid, local_dir, remote_dir, auto_sync=-1, bidirectional=True):
-        if local_dir not in self[uuid][CONN_SYNCS_KEY]:
-            self[uuid][CONN_SYNCS_KEY][local_dir] = {}
+    def add_sync(self, uuid, local_dir, remote_dir, policy, resolve, auto_sync=-1, bidirectional=True):
+        if local_dir not in self[uuid][CONN_SYNCS_KEY]: self[uuid][CONN_SYNCS_KEY][local_dir] = {}
         self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir] = {
             SYNC_BIDIR_KEY:bidirectional,
             SYNC_AUTO_KEY: auto_sync,
+            SYNC_CONFLICT_POLICY_KEY: policy,
+            SYNC_RESOLVE_POLICY_KEY: resolve,
             SYNC_LOC_IGN_KEY: [],
             SYNC_SYNCED_IGN_KEY: []
         }
+        
+    def delete_sync(self, uuid, local, remote):
+        del self[uuid][CONN_SYNCS_KEY][local][remote]
         
     def update(self, uuid, new_uuid=None, new_hostname=None, new_port=None, new_dir_info=None):
         if new_hostname is not None: self[uuid][CONN_HOSTNAME_KEY] = new_hostname

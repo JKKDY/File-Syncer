@@ -11,8 +11,7 @@ from threading import Event, Lock
 from time import sleep
 
 from src.Client import Client
-from src.Config import (CONN_HOSTNAME_KEY, CONN_PORT_KEY, DATE_TIME_FORMAT,
-                        get_logger, temp_uuid)
+from src.Config import CONN_HOSTNAME_KEY, CONN_PORT_KEY, DATE_TIME_FORMAT, get_logger, temp_uuid
 from src.FileTracker import FileTracker
 from src.Network import NT_MSG_TYPE, NT_Code, Socket
 
@@ -21,10 +20,11 @@ logger_name, logger = get_logger(__name__)
 
 
 class Callbacks:
-    def __init__(self, uuid_change, status_change, sync_status_change):
+    def __init__(self, uuid_change, status_change, sync_status_change, new_conflict):
         self.uuid_change = uuid_change
         self.status_change = status_change
         self.sync_status_change = sync_status_change
+        self.new_conflict = new_conflict
         
         
         
@@ -121,7 +121,7 @@ class Server():
         try:
             # establish connection
             client = Client(self.uuid, self.sessions, self.file_tracker, self.logging_settings, \
-                            self.directory_locks, self.callbacks.sync_status_change)
+                            self.directory_locks, self.callbacks.sync_status_change, self.callbacks.new_conflict)
             server_uuid, dir_info = client.connect(hostname, port)
             
             # tell connection who we are
@@ -189,7 +189,7 @@ class Server():
     def _close_connection(self, uuid, conn):
         conn.close() # must be closed before client closed connection
         if uuid in self.clients: 
-            self.clients[uuid].logger.info(f"remote host @ {uuid} disconnected")
+            self.clients[uuid].logger.info(f"Remote host {self.clients[uuid].conn_str()} disconnected")
             self.clients.pop(uuid).close()
             self.callbacks.status_change(uuid)
     
@@ -216,7 +216,7 @@ class Server():
         if not self.connections.has_sync(uuid, local_dir, remote_dir):
             self.connections.add_sync(uuid, local_dir, remote_dir)
             
-        self.clients[uuid].queue_sync(local_dir, remote_dir, False, priority=0)
+        self.clients[uuid].queue_sync(local_dir, remote_dir, self.connections.get_sync_conflict_policy(uuid, local_dir, remote_dir), False, priority=0)
             
     def _fetch_dir_list(self, uuid, conn):
         conn.send_obj(list(self.file_tracker.directories_list))
@@ -236,5 +236,4 @@ class Server():
             self.clients[uuid].logger.debug(f"Send directory changes to {uuid}")
 
 
-        
-        
+

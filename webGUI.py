@@ -5,7 +5,7 @@ from src.ui import UiFrontend, UI_Code
 
 def keys(d, ret = []):
     for k,v in d.items():
-        if isinstance(v, dict): ret + keys(v, ret)
+        if isinstance(v, dict): ret = ret + keys(v, ret)
         ret.append(k)
     return ret
 
@@ -48,17 +48,16 @@ class WebGUI(UiFrontend):
             UI_Code.NOTF_UPDATE_SYNC_STATE: lambda *args: eel.update_sync_state(*args)()
         }) 
         
-    def start(self):
+    def start(self, eel_port):
         self.start_event_loop()
-        eel.start('index.html', port=55000)
+        try: eel.start('index.html', port=eel_port)
+        except SystemExit:pass
+            
         
 
-def start(port=7000):
+def start(server_port, eel_port):
     global webgui
-    webgui = WebGUI(7000)
-    webgui.start()
+    webgui = WebGUI(server_port)
+    webgui.start(eel_port)
     webgui.close()
 
-
-if __name__ == "__main__":
-    start()
