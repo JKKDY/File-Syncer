@@ -164,3 +164,7 @@ logs/
 archive/
 test/
 loc.py
+tests/Syncer1/
+tests/Syncer2/
+tests/dir1/
+tests/dir2/

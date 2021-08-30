@@ -83,12 +83,14 @@ class RepeatedJob(threading.Thread):
         
     def stop(self):
         self.stopped.set()
-        if self.is_alive(): self.join()
+        self.join()
         
     def run(self):
         while not self.stopped.wait(self.interval):
             self.execute(*self.args, **self.kwargs)
-            
+    
+    def join(self):
+        if self.is_alive(): self.join()
             
             
 

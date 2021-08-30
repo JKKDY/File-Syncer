@@ -47,7 +47,7 @@ class FileSyncer(Config):
             UI_Code.REQ_DIRS : self.get_directories,
             UI_Code.REQ_DIR_INFO : self.get_directory_info,
             UI_Code.REQ_DIR_GRAPH : self.get_directory_graph,
-            UI_Code.ADD_CONNECTION : self.add_to_connection_list,
+            UI_Code.ADD_CONNECTION : self.add_new_connection,
             UI_Code.UUID_CONNECT : self.connect,
             UI_Code.UUID_DISCONNECT : self.disconnect,
             UI_Code.UUID_SYNC : self.sync, 
@@ -142,8 +142,11 @@ class FileSyncer(Config):
     
     
     # connection API
-    def add_to_connection_list(self, hostname, port, name): 
+    def add_new_connection(self, hostname, port, name): 
         return self.connections_list.new_connection(hostname, port, name)
+    
+    def get_connections(self):
+        return self.connections_list.to_dict()
         
     def connect(self, uuid): 
         return self.server.connect(uuid)

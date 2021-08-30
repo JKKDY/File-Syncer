@@ -1,0 +1,18 @@
+{
+    "data_path": "data\\",
+    "logs_path":"logs\\",
+
+    "port":10000,
+    "ui_port":7000,
+
+    "default_ping_rate":10,
+    "default_sync_rate":60,
+    "default_connect_rate": 3,
+
+    "global_ign_patterns": [
+        ".*",
+        "desktop.ini"
+    ],
+
+    "check_sync_ok_timeout":5
+}

@@ -1,0 +1,10 @@
+{
+    "Syncer2": {
+        "auto_connect": -1,
+        "directories": {},
+        "hostname": "Surface",
+        "name": "Surface",
+        "port": 40000,
+        "syncs": {}
+    }
+}

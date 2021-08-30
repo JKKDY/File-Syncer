@@ -51,7 +51,7 @@ class WebGUI(UiFrontend):
     def start(self, eel_port):
         self.start_event_loop()
         try: eel.start('index.html', port=eel_port)
-        except SystemExit:pass
+        except SystemExit: print("GUI closed")
             
         
 
