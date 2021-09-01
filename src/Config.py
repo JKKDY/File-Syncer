@@ -204,18 +204,18 @@ class DirectoriesList(JSON_File):
     def __init__(self, path:Path):
         super().__init__(path)
     
-    def new_directory(self, path, name, ignore_patterns):
-        self[str(path)] = {
+    def add_directory(self, path, name, ignore_patterns):
+        self[str(path)] = JSON_Data({
             DIR_IGNORE_KEY: ignore_patterns,
             DIR_HASH_KEY: hash_word(path),
-            DIR_NAME_KEY: name if name != "" else path
-        }
+            DIR_NAME_KEY: str(name if name != "" else path)
+        }, self, self.auto_save)
         
     def update(self, path, ign_patterns=None, hash=None):
         if ign_patterns is not None: self[str(path)][DIR_IGNORE_KEY] = ign_patterns
         if hash is not None: self[str(path)][DIR_HASH_KEY] = hash
         
-    def info(self): # returns paths & names of directories
+    def dir_list(self): # returns paths & names of directories
         return {str(path):directory[DIR_NAME_KEY] for path, directory in self.items()}
             
        

@@ -4,7 +4,6 @@ from time import sleep
 
 import webGUI
 from src.FileSyncer import FileSyncer
-
 from reset_test_env import reset_syncer
 
 

@@ -45,19 +45,20 @@ class WebGUI(UiFrontend):
             UI_Code.NOTF_UPDATE_STATUS : lambda *args: eel.update_status(*args)(),
             UI_Code.NOTF_UPDATE_DIR_GRAPH : lambda *args: eel.update_directory_graph(*args)(),
             UI_Code.NOTF_NEW_CONNECTION: lambda *args: eel.new_connection(*args)(),
-            UI_Code.NOTF_UPDATE_SYNC_STATE: lambda *args: eel.update_sync_state(*args)()
+            UI_Code.NOTF_UPDATE_SYNC_STATE: lambda *args: eel.update_sync_state(*args)(),
+            UI_Code.NOTF_NEW_DIRECTORY: lambda *args: eel.new_directory(*args)()
         }) 
         
-    def start(self, eel_port):
+    def start(self, eel_port, block):
         self.start_event_loop()
-        try: eel.start('index.html', port=eel_port)
+        try: eel.start('index.html', mode='chrome', port=eel_port, block=block, cmdline_args=['--disable-extensions', '--disable-plugins'])
         except SystemExit: print("GUI closed")
             
         
 
-def start(server_port, eel_port):
+def start(server_port, eel_port=0, block=True):
     global webgui
     webgui = WebGUI(server_port)
-    webgui.start(eel_port)
+    webgui.start(eel_port, block)
     webgui.close()
 

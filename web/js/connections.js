@@ -322,9 +322,11 @@ class Selection{
 
     document.getElementById("new_connection").onclick = ()=> window.connections.new_conn_window.display()
 
+    
     window.callbacks.status_change.add((uuid, status)=>{
         window.connections.selection.rows[uuid].update_status(status)
     })
+
     window.callbacks.uuid_change.add((old_uuid, new_uuid) => {
         window.connections.selection.change_uuid(old_uuid, new_uuid)
 
@@ -332,6 +334,7 @@ class Selection{
             window.connections.info_display.uuid_field.innerHTML = new_uuid
         }
     })
+
     window.callbacks.new_connection.add((uuid) => {
         window.connections.selection.add(uuid, new ConnectionRow(uuid))
     })

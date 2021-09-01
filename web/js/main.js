@@ -380,6 +380,7 @@ class Callback{
         window.callbacks.directory_graph_update = new Callback()
         window.callbacks.new_connection = new Callback()
         window.callbacks.update_sync_state = new Callback()
+        window.callbacks.new_directory = new Callback()
 
         window.callbacks.directory_graph_update.add((path, graph) => {
             window.data.directories[path].update_graph(graph)
@@ -396,6 +397,11 @@ class Callback{
         
         window.callbacks.new_connection.add(async (uuid) => {
             await new_conn(uuid)
+        })
+
+        window.callbacks.new_directory.add(async (dir_path) => {
+            console.log("new dir: ", dir_path)
+            await new_dir(dir_path)
         })
 
         window.callbacks.update_sync_state.add
@@ -435,4 +441,9 @@ function new_connection(uuid){
 eel.expose(update_sync_state)
 function update_sync_state(uuid, local_dir, remote_dir, status){
     window.callbacks.update_sync_state.call(uuid, local_dir, remote_dir, status)
+}
+
+eel.expose(new_directory)
+function new_directory(dir_path){
+    window.callbacks.new_directory.call(dir_path)
 }

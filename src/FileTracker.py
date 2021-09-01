@@ -286,17 +286,18 @@ class Directory():
 #######################
 class FileTracker:
     """Stores tracked/manages tracked directories"""
-    def __init__ (self, directories, logging_settings, data_path, glob_ign_ptn, update_callback):
+    def __init__ (self, directories, logging_settings, data_path, glob_ign_ptn, update_callback, new_dir_callback):
         logger.info("Filetracker online")
         self.directories_list = directories # data on directories to track
         self.logging_settings = logging_settings
         self.save_path = data_path
         self.update_callback = update_callback
+        self.new_dir_callback = new_dir_callback
         self.global_ign_patterns = glob_ign_ptn
     
         self.directories = {} 
         for dir_path, dir_props in self.directories_list.items():
-            self.directories[dir_path] = Directory(Path(dir_path), self.save_path, dir_props[DIR_IGNORE_KEY], self.global_ign_patterns, self.logging_settings, update_callback)
+            self.directories[str(dir_path)] = Directory(Path(dir_path), self.save_path, dir_props[DIR_IGNORE_KEY], self.global_ign_patterns, self.logging_settings, update_callback)
         
         for _, directory in self.directories.items():
             directory.update()
@@ -304,8 +305,9 @@ class FileTracker:
     def add_directory(self, path:Path,  name:str, dir_ign_patterns:list) -> None:
         if path in self.directories: raise Exception(f"Already tracking {path}")
         
-        self.directories[path] = Directory(path, self.save_path, dir_ign_patterns, self.global_ign_patterns, self.logging_settings, self.update_callback)
-        self.directories_list.new_directory(path, name, dir_ign_patterns)
+        self.directories[str(path)] = Directory(Path(path), self.save_path, dir_ign_patterns, self.global_ign_patterns, self.logging_settings, self.update_callback)
+        self.directories_list.add_directory(path, name, dir_ign_patterns)
+        self.new_dir_callback(str(path))
         
         logger.info(f"Tracking directory {path}") 
         
@@ -337,4 +339,7 @@ class FileTracker:
     
     def keys(self):
         return self.directories.keys()
+    
+    def dir_info(self):
+        return self.directories_list.dir_info()
 

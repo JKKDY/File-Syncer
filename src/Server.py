@@ -31,12 +31,11 @@ class Callbacks:
 
 class Server():
     def __init__(self, hostname, ip, port, uuid, file_tracker, sessions, \
-        connections, directories, log_settings, callbacks):
+        connections, log_settings, callbacks):
         
         self.file_tracker = file_tracker
         self.sessions = sessions    
         self.connections = connections # connection data
-        self.directories = directories
         self.logging_settings = log_settings
         self.callbacks = callbacks
         
@@ -49,7 +48,7 @@ class Server():
         self.clients = {}
         self.client_threads = {}
         self.active_syncs = {}
-        self.directory_locks = {directory:Lock() for directory in self.directories.keys()} 
+        self.directory_locks = {directory:Lock() for directory in self.file_tracker.keys()} 
         
         self.will_shut_down = False
         self.socket = Socket()
@@ -67,7 +66,7 @@ class Server():
                 # accept incoming connection
                 conn = Socket(self.socket.accept()[0]) 
                 try:             
-                    conn.send_multi(self.uuid, self.directories.info()) 
+                    conn.send_multi(self.uuid, self.file_tracker.dir_info()) 
                     uuid, hostname, port = conn.recv_multi() # recv introduction
                     logger.info(f"Server accepted connection from {uuid}")
                 except socket.error as e: # TODO should disconnect client

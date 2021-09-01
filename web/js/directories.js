@@ -87,4 +87,8 @@ class DirectoryInfo{
             window.directories.info_display.display(directory)
         }
     })
+
+    window.callbacks.new_directory.add((dir_path)=>{
+        window.directories.selection.add_dir(dir_path)
+    })
 })();

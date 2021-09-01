@@ -142,7 +142,7 @@ class Client(Socket):
     def conn_str(self): # used for logging
         return f"{self.server_uuid} @ (hostname: {self.server_hostname}, port: {self.server_port})"
        
-       
+
     def req_dir_list(self): # is not used anywhere?
         self.send_code(NT_Code.REQ_DIR_LST)
         self.logger.debug(f"Receive directory list")

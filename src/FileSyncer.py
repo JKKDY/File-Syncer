@@ -31,11 +31,11 @@ class FileSyncer(Config):
         self.will_shut_down = False
         
         self.file_tracker = FileTracker(self.directories_list, self.logging_settings, self.data_path, \
-                                        self.global_ign_patterns, self.update_directory_graph_callback)
+                                        self.global_ign_patterns, self.update_directory_graph_callback, self.new_directory_callback)
         
         server_callbacks = Callbacks(self.update_uuid_callback, self.update_status_callback, self.update_sync_status_callback, self.new_conflict_callback)
         self.server = Server(self.hostname, self.ip, self.port, self.uuid, self.file_tracker, self.sessions, \
-            self.connections_list, self.directories_list, self.logging_settings, server_callbacks)
+            self.connections_list, self.logging_settings, server_callbacks)
         self.server_thread = Thread(target=self.server.start_server, name ="server_thread") 
         
         self.auto_connect_thread = RepeatedJob(self.auto_connect_rate, target=self._auto_connect, name="auto_connect_thread")  
@@ -108,8 +108,8 @@ class FileSyncer(Config):
     
     
     # edit lists
-    def add_directory(self, directory):
-        raise NotImplementedError
+    def add_directory(self, directory, name="", ignore_patterns=[]):
+        self.file_tracker.add_directory(directory, name, ignore_patterns)
     
     def delete_directory(self, directory):
         raise NotImplementedError
@@ -176,6 +176,9 @@ class FileSyncer(Config):
     
     def new_connection_callback(self, uuid): 
         self.ui.notify(UI_Code.NOTF_NEW_CONNECTION, uuid)
+        
+    def new_directory_callback(self, dir_path):
+        self.ui.notify(UI_Code.NOTF_NEW_DIRECTORY, dir_path)
     
     def update_sync_status_callback(self, uuid, local, remote, state): 
         self.ui.notify(UI_Code.NOTF_UPDATE_SYNC_STATE, uuid, local, remote, state)

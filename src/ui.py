@@ -29,6 +29,7 @@ class UI_Code(IntEnum):
     NOTF_NEW_CONNECTION = auto()
     NOTF_UPDATE_SYNC_STATE = auto()
     NOTF_NEW_CONFLICT = auto()
+    NOTF_NEW_DIRECTORY = auto()
     
     ADD_CONNECTION = auto()
     UUID_CONNECT = auto()
