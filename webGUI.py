@@ -10,6 +10,8 @@ def keys(d, ret = []):
     return ret
 
 
+# TODO: add debug logging
+# TODO: make seperate process for test purposes
 
 
 @eel.expose

@@ -9,6 +9,7 @@ from threading import Event
 from uuid import uuid1
 
 from src.utils import hash_word, now, update_with_nested_dict
+from src.Codes import CONFLICT_POLICY, RESOLVE_POLICY
 
 
 DATE_TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
@@ -172,8 +173,11 @@ class ConnectionsList(JSON_File):
         
     def get_sync_conflict_policy(self, uuid, local_dir, remote_dir):
         return self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir][SYNC_CONFLICT_POLICY_KEY]
-     
-    def add_sync(self, uuid, local_dir, remote_dir, policy, resolve, auto_sync=-1, bidirectional=True):
+    
+    def get_sync_conflict_resolve(self, uuid, local_dir, remote_dir):
+        return self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir][SYNC_RESOLVE_POLICY_KEY]
+
+    def add_sync(self, uuid, local_dir, remote_dir, policy=CONFLICT_POLICY.PROCEED_AND_RECORD, resolve=RESOLVE_POLICY.CREATE_COPY, auto_sync=-1, bidirectional=True):
         if local_dir not in self[uuid][CONN_SYNCS_KEY]: self[uuid][CONN_SYNCS_KEY][local_dir] = {}
         self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir] = {
             SYNC_BIDIR_KEY:bidirectional,
@@ -215,7 +219,7 @@ class DirectoriesList(JSON_File):
         if ign_patterns is not None: self[str(path)][DIR_IGNORE_KEY] = ign_patterns
         if hash is not None: self[str(path)][DIR_HASH_KEY] = hash
         
-    def dir_list(self): # returns paths & names of directories
+    def dir_info(self): # returns paths & names of directories
         return {str(path):directory[DIR_NAME_KEY] for path, directory in self.items()}
             
        
@@ -257,7 +261,7 @@ class Config(JSON_File):
     class LoggingSettings:
         def __init__(self, logs_path:Path):
             self.logs_path = logs_path
-            self.logging_level = logging.INFO #logging.DEBUG 
+            self.logging_level = logging.DEBUG #logging.INFO 
             
             #TODO add filter such that FS_root is not eliminated from logger names in log files, see:https://stackoverflow.com/questions/46954855/python-logging-format-how-to-print-only-the-last-part-of-logger-name
             self.formater = logging.Formatter("[{asctime}] [{levelname:<6}] {name} : {message}", style="{")

@@ -312,7 +312,7 @@ class FileTracker:
         logger.info(f"Tracking directory {path}") 
         
     def update_dir_ignore(self, dir_path, ign_patterns):
-        self.directories[dir_path].update_ign_patterns(dir_ign = ign_patterns)
+        self.directories[dir_path].update_ign_patterns(dir_ign=ign_patterns)
         self.directories_list.update(dir_path, ign_patterns=ign_patterns)
     
     def update_glob_ignore(self, ign_patterns):

@@ -125,7 +125,7 @@ class UiBackend:
                 self.notif_socket = Socket(self.socket.accept()[0]) # notifes front end
                 self.connected = True
             except socket.error as e:
-                print("shut down start loop1", e)
+                #print("shut down start loop1", e)
                 self.connected = False
                 return
             

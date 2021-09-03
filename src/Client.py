@@ -164,7 +164,7 @@ class Client(Socket):
     def queue_sync(self, local_dir, remote_dir, conflict_policy, default_resolve, bi_directional_sync, priority=-1): #priority: -1: queue at last, 0: queue first
         # TODO implement priority system
         self.logger.debug(f"Add to queue: sync local directory '{local_dir}' with remote directory '{remote_dir}'")
-        self.sync_queue.add_sync(priority, local_dir, remote_dir, conflict_policy, default_resolve, bi_directional_sync)
+        self.sync_queue.add_sync(priority, str(local_dir), str(remote_dir), conflict_policy, default_resolve, bi_directional_sync)
     
     
     def get_conflict_info(self, local_dir, remote_dir, rel_path, is_dir):
@@ -233,7 +233,6 @@ class Client(Socket):
                     send2trash(str(folder.full_path))
                     self.logger.info(f"Delete folder '{folder.location()}' in '{local_dir}'")
         create(local_graph)
-        
         self.file_tracker[local_dir].update(callback=True)
                 
         self.directory_locks[local_dir].release()
@@ -247,7 +246,8 @@ class Client(Socket):
             self.send_code(NT_Code.REQ_SYNC)
             self.send_str(remote_dir)
             self.send_str(local_dir)
-            
+            if code:=self.recv_code() != NT_Code.END_SYNC: raise Exception("expected NT_Code.END_SYNC, got ", code)
+        
         self.sessions.add_sync(self.server_uuid, local_dir, remote_dir)
         self.logger.info("Sync Done")  
         

@@ -97,7 +97,7 @@ class Socket:
     def _recv_header(self, expected_type):
         if self._recv_msg_type is True: msg_type = NT_MSG_TYPE(int.from_bytes(self.socket.recv(CODE_SIZE), "big"))
         else:  msg_type = NT_MSG_TYPE.UNDEF
-        assert(expected_type & msg_type) # , f"Wrong message type! Expected {expected_type}, got {msg_type}"
+        assert(expected_type & msg_type, f"Wrong message type! Expected {expected_type}, got {msg_type}")
         msg_len = int.from_bytes(self.socket.recv(HEADER_SIZE), "big")
         return msg_len
 

@@ -1,19 +1,12 @@
-import datetime
-import logging
 import os
-import pickle
 import select
 import socket
 import threading
-from collections import deque
-from pathlib import Path
-from threading import Event, Lock
-from time import sleep
+from threading import Lock
 
 from src.Client import Client
 from src.Config import CONN_HOSTNAME_KEY, CONN_PORT_KEY, DATE_TIME_FORMAT, get_logger, temp_uuid
-from src.FileTracker import FileTracker
-from src.Network import NT_MSG_TYPE, NT_Code, Socket
+from src.Network import NT_Code, Socket
 
 logger_name, logger = get_logger(__name__)
 
@@ -215,7 +208,10 @@ class Server():
         if not self.connections.has_sync(uuid, local_dir, remote_dir):
             self.connections.add_sync(uuid, local_dir, remote_dir)
             
-        self.clients[uuid].queue_sync(local_dir, remote_dir, self.connections.get_sync_conflict_policy(uuid, local_dir, remote_dir), False, priority=0)
+        self.clients[uuid].queue_sync(local_dir, remote_dir, self.connections.get_sync_conflict_policy(uuid, local_dir, remote_dir), \
+            self.connections.get_sync_conflict_resolve(uuid, local_dir, remote_dir), False, priority=0)
+        
+        conn.send_code(NT_Code.END_SYNC)
             
     def _fetch_dir_list(self, uuid, conn):
         conn.send_obj(list(self.file_tracker.directories_list))

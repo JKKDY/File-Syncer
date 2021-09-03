@@ -1,7 +1,7 @@
 import time
 from enum import IntEnum
 from pathlib import Path
-from threading import Thread
+from threading import Thread, Lock
 
 from src.Config import get_logger, ConnectionsList, DirectoriesList, Sessions, Config, get_uuid, CFG_GLOB_IGN_KEY, CONN_AUTO_CONNECT_KEY
 from src.FileTracker import FileTracker
@@ -110,6 +110,7 @@ class FileSyncer(Config):
     # edit lists
     def add_directory(self, directory, name="", ignore_patterns=[]):
         self.file_tracker.add_directory(directory, name, ignore_patterns)
+        self.server.directory_locks[str(directory)] = Lock()
     
     def delete_directory(self, directory):
         raise NotImplementedError
