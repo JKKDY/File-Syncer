@@ -107,7 +107,38 @@ class FileSyncer(Config):
         return 2 if uuid in self.server.clients else 0 
     
     
-    # edit lists
+    # connection API
+    def add_new_connection(self, hostname, port, name): 
+        return self.connections_list.new_connection(hostname, port, name)
+    
+    def get_known_connections(self):
+        return self.connections_list.to_dict()
+        
+    def connect(self, uuid): 
+        return self.server.connect(uuid)
+    
+    def disconnect(self, uuid): 
+        self.server.close_connection(uuid)
+        
+        
+    # syncs    
+    def add_sync(self, uuid, local, remote, conflict_policy=CONFLICT_POLICY.PROCEED_AND_RECORD, default_resolve=RESOLVE_POLICY.CREATE_COPY, auto_sync=-1, bidirectional=True):
+        self.connections_list.add_sync(uuid, local, remote, conflict_policy, default_resolve, auto_sync, bidirectional)
+    
+    def delete_sync(self, uuid, local, remote):
+        self.connections_list.delete_sync(uuid, local, remote)
+        
+    def sync(self, uuid, local_dir, remote_dir, conflict_policy=CONFLICT_POLICY.PROCEED_AND_RECORD, default_resolve=RESOLVE_POLICY.CREATE_COPY, bidirectional=True, priority=-1, block_backsync=True): 
+        return self.server.clients[uuid].queue_sync(local_dir, remote_dir, conflict_policy, default_resolve, bidirectional, priority)
+    
+    def resolve_conflict(self, uuid, local_dir, remote_dir, rel_path, is_dir, resolve_policy):
+        self.server.clients[uuid].resolve_conflict(local_dir, remote_dir, rel_path, is_dir, resolve_policy)
+        
+    def get_conflicts(self, uuid, local_dir, remote_dir):
+        return self.server.clients[uuid].get_conflicts(local_dir, remote_dir)
+    
+    
+    # directories 
     def add_directory(self, directory, name="", ignore_patterns=[]):
         self.file_tracker.add_directory(directory, name, ignore_patterns)
         self.server.directory_locks[str(directory)] = Lock()
@@ -115,14 +146,6 @@ class FileSyncer(Config):
     def delete_directory(self, directory):
         raise NotImplementedError
     
-    def add_sync(self, uuid, local, remote, conflict_policy=CONFLICT_POLICY.PROCEED_AND_RECORD, default_resolve=RESOLVE_POLICY.CREATE_COPY, auto_sync=-1, bidirectional=True):
-        self.connections_list.add_sync(uuid, local, remote, conflict_policy, default_resolve, auto_sync, bidirectional)
-    
-    def delete_sync(self, uuid, local, remote):
-        self.connections_list.delete_sync(uuid, local, remote)
-
-    
-    # directory info 
     def get_directories(self): 
         return list(self.directories_list.keys())
     
@@ -132,38 +155,13 @@ class FileSyncer(Config):
     def get_directory_graph(self, directory): 
         return self.file_tracker[directory].to_dict()
     
-
-    # update ignore patterns
     def update_global_ignore(self, patterns): 
         self.file_tracker.update_glob_ignore(patterns)
         self[CFG_GLOB_IGN_KEY] = patterns
         
     def update_directory_ignore(self, directory, patterns): 
         self.file_tracker.update_dir_ignore(directory, patterns)
-    
-    
-    # connection API
-    def add_new_connection(self, hostname, port, name): 
-        return self.connections_list.new_connection(hostname, port, name)
-    
-    def get_connections(self):
-        return self.connections_list.to_dict()
         
-    def connect(self, uuid): 
-        return self.server.connect(uuid)
-    
-    def disconnect(self, uuid): 
-        self.server.close_connection(uuid)
-    
-    def sync(self, uuid, local_dir, remote_dir, conflict_policy=CONFLICT_POLICY.PROCEED_AND_RECORD, default_resolve=RESOLVE_POLICY.CREATE_COPY, bidirectional=True, priority=-1): 
-        self.server.clients[uuid].queue_sync(local_dir, remote_dir, conflict_policy, default_resolve, bidirectional, priority)
-    
-    def resolve_conflict(self, uuid, local_dir, remote_dir, rel_path, is_dir, resolve_policy):
-        self.server.clients[uuid].resolve_conflict(local_dir, remote_dir, rel_path, is_dir, resolve_policy)
-        
-    def get_conflict_info(self, uuid, local_dir, remote_dir, rel_path, is_dir):
-        return self.server.clients[uuid].get_conflict_info(local_dir, remote_dir, rel_path, is_dir)
-    
     
     # callbacks
     def update_uuid_callback(self, old_uuid, new_uuid): 

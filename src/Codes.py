@@ -1,4 +1,4 @@
-from enum import IntEnum, auto
+from enum import IntEnum, auto, Enum
 
 class CONFLICT_POLICY(IntEnum):
     WAIT_FOR_RESOLVE = auto() # wait for user input to proceed
@@ -13,7 +13,18 @@ class RESOLVE_POLICY(IntEnum):
     CREATE_COPY = auto()
     
     
-class CONFLICT_TYPE(IntEnum):
+class CONFLICT_TYPE(Enum):
     MODIF_CONFLICT = auto()
     DELETE_CONFLICT = auto()
+    
+    
+class SYNC_STATUS(IntEnum):
+    SYNCING = 1
+    NOT_SYNCING = 0
+    
+class SYNC_RET_CODE(Enum):
+    SUCCESS = 1
+    LOCAL_DIR_IN_USE = auto()
+    REMOTE_DIR_IN_USE = auto()
+    HAS_CONFLICT = auto()
 

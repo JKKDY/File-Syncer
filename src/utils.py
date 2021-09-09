@@ -43,7 +43,10 @@ class NestedDict:
     
     def __iter__(self):
         return iter(self.dict)   
-        
+    
+    def items(self):
+        return self.dict.items()     
+       
     def to_dict(self):
         return {key:(value.to_dict() if isinstance(value, NestedDict) else value) for key, value in self.dict.items()}
     
@@ -114,7 +117,7 @@ class Timer: # for benchmark purposes
     
     
 def copy_name(name, ending, container, it=0):
-    if new_name := name + "_copy" + ending in container:
+    if (new_name := name + "_copy" + ending) in container:
         return copy_name(name, f" ({it})" + ending, container, it=it+1)
     else: return new_name
     

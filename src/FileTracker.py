@@ -29,7 +29,8 @@ class DirectoryElement:
         self.logger = logging.getLogger(f"{logger_name}.{hash_word(dir_path)}")
         self._deleted = DEFAULT_TIME
         self._created = DEFAULT_TIME
-                 
+        self.hash = 0
+
     def location(self, time=now(), prev=False) -> Path:
         """returns location at *time* (relative to dir_path)"""
         times = sorted(list(self.locations.keys()) + [time])
@@ -70,7 +71,6 @@ class DirectoryElement:
 class File(DirectoryElement):
     def __init__(self, rel_path, dir_path, update_on_creation=True):
         super().__init__(rel_path, dir_path)
-        self.hash = 0
         if update_on_creation: self.update()
         
     @property
@@ -182,34 +182,35 @@ class Folder(DirectoryElement):
         for file in other.files:
             if not self.is_in_ignore(file, is_file=True):
                 if other.files[file].exists:
-                
+                    other_file = File(other.files[file].rel_path, self.dir_path, False)
+                    
                     if file not in self.files:
                         # self does not contain *file*
-                        self.files[file] = File(other.files[file].rel_path, self.dir_path, False)
+                        self.files[file] = other_file
                         
                     elif self.files[file].hash != other.files[file].hash and other.files[file].is_modified(last_time_synced): 
                         # self contains *file* but their contents are different and other.file has been modified since last sync
                         if self.files[file].is_modified(last_time_synced):
                             # both have been modifed since last sync -> conflict
-                            conflict_callback(self, other, self.files[file].rel_path, False, file, CONFLICT_TYPE.MODIF_CONFLICT) 
+                           conflict_callback(self, other, file, other_file, False, CONFLICT_TYPE.MODIF_CONFLICT) 
                         else:
-                            self.files[file] = File(other.files[file].rel_path, self.dir_path, False)
+                            self.files[file] = other_file
                             
                 else: # other.file has been deleted
                     if file in self.files:
                         if self.files[file].is_modified(last_time_synced):
                             # other.file has been deleted but self.file has been modified -> conflict
-                            conflict_callback(self, other,  self.files[file].rel_path, False, file, CONFLICT_TYPE.DELETE_CONFLICT)
+                            conflict_callback(self, other, file, other_file, False, CONFLICT_TYPE.DELETE_CONFLICT)
                         else:
                             self.files[file].deleted()
                             
         for folder in other.folders:
             if not self.is_in_ignore(folder, is_file=False):
                 if other.folders[folder].exists:
-                    
+                    other_folder = Folder(other.folders[folder].location(), self.dir_path, self.ignore_patterns,False)
                     if folder not in self.folders:
                         # self does not contain *folder*
-                        self.folders[folder] = Folder(other.folders[folder].location(), self.dir_path, self.ignore_patterns,False)
+                        self.folders[folder] = other_folder
                     
                     # merge subfolders aswell
                     self.folders[folder].merge(other.folders[folder], last_time_synced, conflict_callback)
@@ -218,7 +219,7 @@ class Folder(DirectoryElement):
                     if folder in self.folders: 
                         if self.folders[folder].is_modified(last_time_synced):
                             # other.folder has been deleted but self.folder has been modified -> conflict
-                            conflict_callback(self, other, self.folders[folder].rel_path , True, folder, CONFLICT_TYPE.DELETE_CONFLICT)
+                            conflict_callback(self, other, folder, other_folder, True, CONFLICT_TYPE.DELETE_CONFLICT)
                         else:
                             self.folders[folder].deleted()
                             
@@ -259,7 +260,7 @@ class Directory():
         self.update(callback=True)
         
     def update(self, callback=False):
-        self.logger.info(f"Updating directory {self.path}")
+        self.logger.debug(f"Updating directory {self.path}")
         self.root.update()
         if callback: self.update_callback(str(self.path))
         

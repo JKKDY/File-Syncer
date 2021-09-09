@@ -221,14 +221,14 @@ class Server():
         directory = conn.recv_str()
         self.file_tracker[directory].update()
         conn.send_obj(self.file_tracker[directory].root)
-        self.clients[uuid].logger.debug(f"Send directory graph to {uuid}")
+        self.clients[uuid].logger.debug(f"Send directory graph of '{directory}' to {uuid}")
         
     def _fetch_file(self, uuid, conn):
         directory = conn.recv_str()
         file = conn.recv_str()
         if not self.file_tracker[directory].is_in_ignore(file): #little saftey precaution
             conn.send_file(os.path.join(directory, file))
-            self.clients[uuid].logger.debug(f"Send directory changes to {uuid}")
+            self.clients[uuid].logger.debug(f"Send file '{file}' to {uuid}")
 
 
 
