@@ -1,9 +1,9 @@
 from datetime import datetime
-import hashlib
 import json
 import logging
 import os
 import socket
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from threading import Event
 from uuid import uuid1
@@ -266,7 +266,7 @@ class Config(JSON_File):
             #TODO add filter such that FS_root is not eliminated from logger names in log files, see:https://stackoverflow.com/questions/46954855/python-logging-format-how-to-print-only-the-last-part-of-logger-name
             self.formater = logging.Formatter("[{asctime}] [{levelname:<6}] {name} : {message}", style="{")
             
-            self.root_handler = logging.FileHandler(self.logs_path / "main.log", encoding='utf-8')
+            self.root_handler = RotatingFileHandler(self.logs_path / "main.log", encoding='utf-8', maxBytes=1e+6)
             self.root_handler.setFormatter(self.formater)
             self.root_handler.setLevel(self.logging_level)
             
@@ -279,7 +279,7 @@ class Config(JSON_File):
             logger.setLevel(self.logging_level)
             logger.propagate = False
             
-            handler = logging.FileHandler(self.logs_path / file_name, encoding="utf-8")
+            handler = RotatingFileHandler(self.logs_path / file_name, encoding="utf-8",  maxBytes=1e+6)
             handler.setLevel(logging.DEBUG)
             handler.setFormatter(self.formater)
             
@@ -287,7 +287,7 @@ class Config(JSON_File):
             return logger
             
         def default_handler(self, file_name):
-            handler = logging.FileHandler(self.logs_path / file_name)
+            handler = RotatingFileHandler(self.logs_path / file_name, maxBytes=1e+6)
             handler.setLevel(logging.DEBUG)
             handler.setFormatter(self.formater)
             return handler

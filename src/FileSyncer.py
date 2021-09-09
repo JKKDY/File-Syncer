@@ -16,8 +16,6 @@ logger_name, logger = get_logger(__name__)
 
 # TODO: add encryption 
 # TODO: sync optimization; check if files have been moved/renamed etc
-# TODO: rotating filehandler for logger
-# TODO: conflict handling
 
 
 class FileSyncer(Config):
@@ -44,14 +42,25 @@ class FileSyncer(Config):
             UI_Code.REQ_UUIDS : self.get_uuids,
             UI_Code.REQ_UUID_INFO : self.get_uuid_info,
             UI_Code.REQ_UUID_STATUS : self.get_uuid_status,
+            
+            UI_Code.ADD_CONNECTION : self.add_new_connection,
+            UI_Code.REQ_CONNECTIONS : self.get_known_connections,
+            UI_Code.UUID_CONNECT : self.connect,
+            UI_Code.UUID_DISCONNECT : self.disconnect,
+            
+            UI_Code.UUID_SYNC : self.sync, 
+            UI_Code.UUID_ADD_SYNC : self.add_sync,
+            UI_Code.UUID_DEL_SYNC : self.delete_sync,
+            UI_Code.UUID_RESOLVE_CONFLICT : self.resolve_conflict,
+            UI_Code.UUID_REQ_CONFLICTS : self.get_conflicts,
+            
             UI_Code.REQ_DIRS : self.get_directories,
             UI_Code.REQ_DIR_INFO : self.get_directory_info,
             UI_Code.REQ_DIR_GRAPH : self.get_directory_graph,
-            UI_Code.ADD_CONNECTION : self.add_new_connection,
-            UI_Code.UUID_CONNECT : self.connect,
-            UI_Code.UUID_DISCONNECT : self.disconnect,
-            UI_Code.UUID_SYNC : self.sync, 
-            UI_Code.UUID_RESOLVE_CONFLICT : self.resolve_conflict
+            UI_Code.DEL_DIR : self.delete_directory,
+            UI_Code.ADD_DIR : self.add_directory,
+            UI_Code.UPDATE_DIR_IGN : self.update_directory_ignore,
+            UI_Code.UPDATE_GLOB_IGN : self.update_global_ignore 
         })
         self.ui.start()
     

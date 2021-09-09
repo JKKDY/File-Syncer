@@ -9,7 +9,8 @@ from threading import Thread
 if __name__ == "__main__":
     with FileSyncer(Path("config.json")) as syncer:
         syncer.start_server()
-        syncer.start_auto_connect()
+        #syncer.start_auto_connect()
         webGUI.start(syncer.ui_port, 55000)        
+
 
 
