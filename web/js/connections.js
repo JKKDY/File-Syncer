@@ -118,7 +118,7 @@ class ConnectionInfoDisplay{
     async display(row){
         // set row as active
         if (this.active) {
-            if (this.active.uuid === row.uuid) return
+            //if (this.active.uuid === row.uuid) return
             this.active.set_active(false)
         }
         this.active = row
@@ -186,7 +186,7 @@ class ConnectionRow{
         this.content.className = "tb_content"
 
         this.name_col = document.createElement("span")
-        this.name_col.innerHTML = window.data.connections[uuid].name
+        this.update_info()
 
         this.status_col = document.createElement("span")
         this.status_col.className = "tb_status"
@@ -248,6 +248,11 @@ class ConnectionRow{
         if (active) this.row.classList.add('active')
         else this.row.classList.remove('active')
     }
+
+    update_info(){
+        this.name_col.innerHTML = window.data.connections[this.uuid].name
+    }
+
 }
 
 
@@ -288,9 +293,9 @@ class Selection{
         delete this.rows[uuid]
     }
 
-    change_uuid(old_uuid, new_uuid){
+    update_uuid(old_uuid, new_uuid){
+        this.rows[old_uuid].uuid = new_uuid
         this.rows[new_uuid] = this.rows[old_uuid]
-        this.rows[new_uuid].uuid = new_uuid
         delete this.rows[old_uuid]
     }
 }
@@ -327,10 +332,18 @@ class Selection{
         window.connections.selection.rows[uuid].update_status(status)
     })
 
-    window.callbacks.uuid_change.add((old_uuid, new_uuid) => {
-        window.connections.selection.change_uuid(old_uuid, new_uuid)
+    window.callbacks.update_uuid_info.add((uuid, new_hostname, new_port, new_dir_info) => {
+        window.connections.selection.rows[uuid].update_info()
 
-        if (window.connections.info_display.active.uuid === new_uuid){
+        if (window.connections.info_display.active && window.connections.info_display.active.uuid === uuid){
+            window.connections.info_display.dislay(window.connections.selection.rows[uuid])
+        }
+    })
+
+    window.callbacks.uuid_change.add((old_uuid, new_uuid) => {
+        window.connections.selection.update_uuid(old_uuid, new_uuid)
+
+        if (window.connections.info_display.active && window.connections.info_display.active.uuid === new_uuid){
             window.connections.info_display.uuid_field.innerHTML = new_uuid
         }
     })

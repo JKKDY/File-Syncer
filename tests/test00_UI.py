@@ -11,14 +11,17 @@ def syncer1():
     with FileSyncer(this / "Syncer1/config.json") as syncer:
         syncer.start_server()
         syncer.add_new_connection("Surface", 20000, "Surface")
-        print("UUIDs: ", syncer.get_uuids())
-        print("Connections: " , syncer.get_connections())
-        syncer.connect(syncer.get_uuids()[0])
+        syncer.add_directory(this/"dir1", name="dir1", ignore_patterns=["*.ign"])
 
+        webGUI.start(syncer.ui_port, 55000)
         
 def syncer2():
     with FileSyncer(this / "Syncer2/config.json") as syncer:
         syncer.start_server()
+        syncer.add_new_connection("Surface", 10000, "Surface")
+        syncer.add_directory(this/"dir2", name="dir2", ignore_patterns=["*.ign"])
+        webGUI.start(syncer.ui_port, 60000)
+        
         
         
 if __name__ == '__main__':

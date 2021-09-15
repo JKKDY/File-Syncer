@@ -43,7 +43,8 @@ class WebGUI(UiFrontend):
     def __init__(self, port):
         eel.init('web')
         super().__init__(port, {
-            UI_Code.NOTF_UPDATE_UUID : lambda *args: eel.update_uuid(*args)(),
+            UI_Code.NOTF_UUID_CHANGE : lambda *args: eel.uuid_change(*args)(),
+            UI_Code.NOTF_UPDATE_UUID_INFO : lambda *args: eel.update_uuid_info(*args)(),
             UI_Code.NOTF_UPDATE_STATUS : lambda *args: eel.update_status(*args)(),
             UI_Code.NOTF_UPDATE_DIR_GRAPH : lambda *args: eel.update_directory_graph(*args)(),
             UI_Code.NOTF_NEW_CONNECTION: lambda *args: eel.new_connection(*args)(),

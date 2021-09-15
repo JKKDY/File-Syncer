@@ -40,8 +40,8 @@ class ConnectionSelection{
     }
 
     change_uuid(old_uuid, new_uuid){
+        this.connections[old_uuid].uuid = new_uuid
         this.connections[new_uuid] = this.connections[old_uuid]
-        this.connections[new_uuid].uuid = new_uuid
         delete this.connections[old_uuid]
     }
 }
@@ -298,6 +298,8 @@ class ConflictsInfo extends Container{
     }
 
     window.callbacks.status_change.add((uuid, status)=>{
+        console.log(uuid)
+        console.log(window.syncs.conn_selection.connections)
         window.syncs.conn_selection.connections[uuid].change_status(status)
     })
 

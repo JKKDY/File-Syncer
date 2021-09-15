@@ -13,8 +13,7 @@ logger_name, logger = get_logger(__name__)
 
 
 class Callbacks:
-    def __init__(self, uuid_change, status_change, sync_status_change, new_conflict):
-        self.uuid_change = uuid_change
+    def __init__(self, status_change, sync_status_change, new_conflict):
         self.status_change = status_change
         self.sync_status_change = sync_status_change
         self.new_conflict = new_conflict
@@ -111,6 +110,7 @@ class Server():
     
     def _connect(self, uuid, hostname, port):
         try:
+            print("_connect", uuid, hostname, port)
             # establish connection
             client = Client(self.uuid, self.sessions, self.file_tracker, self.logging_settings, \
                             self.directory_locks, self.callbacks.sync_status_change, self.callbacks.new_conflict)
@@ -123,8 +123,7 @@ class Server():
             # update info on connection
             self.connections.update(uuid, new_uuid=server_uuid, new_dir_info=dir_info)
             logger.info(f"Client connected to {client.conn_str()}")
-            if uuid is not server_uuid: # uuid has changed
-                self.callbacks.uuid_change(uuid, server_uuid)
+            print("uuid change:", uuid, server_uuid)
                 
             self.callbacks.status_change(server_uuid)
             return server_uuid

@@ -38,7 +38,8 @@ class UI_Code(IntEnum):
     UPDATE_DIR_IGN = auto()
     UPDATE_GLOB_IGN = auto()
     
-    NOTF_UPDATE_UUID = auto()
+    NOTF_UPDATE_UUID_INFO = auto()
+    NOTF_UUID_CHANGE = auto()
     NOTF_UPDATE_STATUS = auto()
     NOTF_UPDATE_DIR_GRAPH = auto()
     NOTF_NEW_CONNECTION = auto()

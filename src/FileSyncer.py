@@ -22,7 +22,7 @@ class FileSyncer(Config):
     def __init__(self, config_path:Path):
         super().__init__(config_path)
         logger.info("Filesyncer start") 
-        self.connections_list = ConnectionsList(self.data_path/"connections.json", new_conn_clback=self.new_connection_callback)
+        self.connections_list = ConnectionsList(self.data_path/"connections.json", self.new_connection_callback, self.uuid_change_callback, self.update_uuid_info_callback)
         self.directories_list = DirectoriesList(self.data_path/"directories.json")
         self.sessions = Sessions(self.data_path/"sessions.json")
         self.uuid = get_uuid(self.data_path)
@@ -31,7 +31,7 @@ class FileSyncer(Config):
         self.file_tracker = FileTracker(self.directories_list, self.logging_settings, self.data_path, \
                                         self.global_ign_patterns, self.update_directory_graph_callback, self.new_directory_callback)
         
-        server_callbacks = Callbacks(self.update_uuid_callback, self.update_status_callback, self.update_sync_status_callback, self.new_conflict_callback)
+        server_callbacks = Callbacks(self.update_status_callback, self.update_sync_status_callback, self.new_conflict_callback)
         self.server = Server(self.hostname, self.ip, self.port, self.uuid, self.file_tracker, self.sessions, \
             self.connections_list, self.logging_settings, server_callbacks)
         self.server_thread = Thread(target=self.server.start_server, name ="server_thread") 
@@ -173,8 +173,11 @@ class FileSyncer(Config):
         
     
     # callbacks
-    def update_uuid_callback(self, old_uuid, new_uuid): 
-        self.ui.notify(UI_Code.NOTF_UPDATE_UUID, old_uuid, new_uuid)
+    def update_uuid_info_callback(self, uuid, new_hostname, new_port, new_dir_info): 
+        self.ui.notify(UI_Code.NOTF_UPDATE_UUID_INFO, uuid, new_hostname, new_port, new_dir_info)
+        
+    def uuid_change_callback(self, uuid, new_uuid): 
+        self.ui.notify(UI_Code.NOTF_UUID_CHANGE, uuid, new_uuid)
         
     def update_status_callback(self, uuid): 
         self.ui.notify(UI_Code.NOTF_UPDATE_STATUS, uuid, self.get_uuid_status(uuid)) 

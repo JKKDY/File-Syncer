@@ -177,7 +177,6 @@ class Folder{
         expand_btn.addEventListener("click", ()=>
             {   
                 let depth = this.get_collapsed_folder_depth()+1
-                console.log(depth)
                 this.expand_sub_folders(this.get_collapsed_folder_depth()+1)
         })
         this.name_div.appendChild(expand_btn)
@@ -187,7 +186,6 @@ class Folder{
         collapse_btn.className = "far fa-minus-square collapse_lvl";
         collapse_btn.addEventListener("click", ()=>{
             let depth = this.get_expanded_folder_depth()-1
-            console.log(depth)
             this.collapse_sub_folders(this.get_expanded_folder_depth()-1)
         })
         this.name_div.appendChild(collapse_btn)
@@ -377,6 +375,7 @@ class Callback{
 
         window.callbacks.status_change = new Callback()
         window.callbacks.uuid_change = new Callback()
+        window.callbacks.update_uuid_info = new Callback()
         window.callbacks.directory_graph_update = new Callback()
         window.callbacks.new_connection = new Callback()
         window.callbacks.update_sync_state = new Callback()
@@ -394,13 +393,18 @@ class Callback{
             window.data.connections[new_uuid] = window.data.connections[old_uuid]
             delete window.data.connections[old_uuid]
         })
+
+        window.callbacks.update_uuid_info.add((uuid, new_hostname, new_port, new_dir_info) => {
+            window.data.connections[uuid].hostname = new_hostname
+            window.data.connections[uuid].port = new_port
+            window.data.connections[uuid].directories = new_dir_info
+        })
         
         window.callbacks.new_connection.add(async (uuid) => {
             await new_conn(uuid)
         })
 
         window.callbacks.new_directory.add(async (dir_path) => {
-            console.log("new dir: ", dir_path)
             await new_dir(dir_path)
         })
 
@@ -422,10 +426,15 @@ function update_status(uuid, status){
     window.callbacks.status_change.call(uuid, status)
 }
 
-eel.expose(update_uuid)
-function update_uuid(old_uuid, new_uuid){   
+eel.expose(uuid_change)
+function uuid_change(old_uuid, new_uuid){
     if (old_uuid === new_uuid) return 
     window.callbacks.uuid_change.call(old_uuid, new_uuid)
+}
+
+eel.expose(update_uuid_info)
+function update_uuid_info(uuid, new_hostname, new_port, new_dir_info){  
+    window.callbacks.update_uuid_info.call(uuid, new_hostname, new_port, new_dir_info)
 }
 
 eel.expose(update_directory_graph)
