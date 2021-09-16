@@ -132,7 +132,7 @@ class FileSyncer(Config):
         
     # syncs    
     def add_sync(self, uuid, local, remote, conflict_policy=CONFLICT_POLICY.PROCEED_AND_RECORD, default_resolve=RESOLVE_POLICY.CREATE_COPY, auto_sync=-1, bidirectional=True):
-        self.connections_list.add_sync(uuid, local, remote, conflict_policy, default_resolve, auto_sync, bidirectional)
+        self.connections_list.add_sync(uuid, str(local), str(remote), conflict_policy, default_resolve, auto_sync, bidirectional)
     
     def delete_sync(self, uuid, local, remote):
         self.connections_list.delete_sync(uuid, local, remote)

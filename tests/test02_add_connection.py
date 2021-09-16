@@ -12,7 +12,7 @@ def syncer1():
         syncer.start_server()
         syncer.add_new_connection("Surface", 20000, "Surface")
         print("UUIDs: ", syncer.get_uuids())
-        print("Connections: " , syncer.get_connections())
+        print("Connections: " , syncer.get_known_connections())
         syncer.connect(syncer.get_uuids()[0])
 
         

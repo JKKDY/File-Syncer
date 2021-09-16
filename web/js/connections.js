@@ -336,7 +336,7 @@ class Selection{
         window.connections.selection.rows[uuid].update_info()
 
         if (window.connections.info_display.active && window.connections.info_display.active.uuid === uuid){
-            window.connections.info_display.dislay(window.connections.selection.rows[uuid])
+            window.connections.info_display.display(window.connections.selection.rows[uuid])
         }
     })
 

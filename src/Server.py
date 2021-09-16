@@ -110,7 +110,6 @@ class Server():
     
     def _connect(self, uuid, hostname, port):
         try:
-            print("_connect", uuid, hostname, port)
             # establish connection
             client = Client(self.uuid, self.sessions, self.file_tracker, self.logging_settings, \
                             self.directory_locks, self.callbacks.sync_status_change, self.callbacks.new_conflict)
@@ -123,7 +122,6 @@ class Server():
             # update info on connection
             self.connections.update(uuid, new_uuid=server_uuid, new_dir_info=dir_info)
             logger.info(f"Client connected to {client.conn_str()}")
-            print("uuid change:", uuid, server_uuid)
                 
             self.callbacks.status_change(server_uuid)
             return server_uuid
@@ -206,9 +204,10 @@ class Server():
         
         if not self.connections.has_sync(uuid, local_dir, remote_dir):
             self.connections.add_sync(uuid, local_dir, remote_dir)
-            
-        self.clients[uuid].queue_sync(local_dir, remote_dir, self.connections.get_sync_conflict_policy(uuid, local_dir, remote_dir), \
-            self.connections.get_sync_conflict_resolve(uuid, local_dir, remote_dir), False, priority=0)
+        
+        policy = self.connections.get_sync_conflict_policy(uuid, local_dir, remote_dir)
+        resolve = self.connections.get_sync_conflict_resolve(uuid, local_dir, remote_dir)
+        self.clients[uuid].queue_sync(local_dir, remote_dir, policy, resolve, False, priority=0)
         
         conn.send_code(NT_Code.END_SYNC)
             

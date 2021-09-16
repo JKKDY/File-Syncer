@@ -145,7 +145,9 @@ class UiBackend:
                     if code == UI_Code.UI_CLOSE: break
                     args = self.req_socket.recv()
                     fkt = self.callbacks[code]
-                    self.req_socket.send(fkt(*args) if args !=() else fkt())
+                    ret = fkt(*args) if args !=() else fkt()
+                    try: self.req_socket.send(ret) # temporary fix
+                    except TypeError:  self.req_socket.send(None)# sync will return an object with an event which cant be pickled
                 except socket.error as e:
                     print("shut down event loop2", e)
                     break

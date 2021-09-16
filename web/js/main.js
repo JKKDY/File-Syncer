@@ -408,8 +408,6 @@ class Callback{
             await new_dir(dir_path)
         })
 
-        window.callbacks.update_sync_state.add
-
     } finally {
         window.navbar = new Navbar(); // try/finally is used so this also runs w/o python backend
     }

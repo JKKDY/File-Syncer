@@ -322,8 +322,7 @@ class ConflictsInfo extends Container{
     })
 
     window.callbacks.update_sync_state.add((uuid, local_dir, remote_dir, state) => {
-        console.log(uuid)
-        console.log(window.syncs.sync_selections[uuid])
+        console.log(uuid, local_dir, remote_dir, state)
         window.syncs.sync_selections[uuid].sync_list[local_dir][remote_dir].set_icon_spin(state)
     })
 })();
