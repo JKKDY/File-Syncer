@@ -52,7 +52,7 @@ class ConnectionSelection{
 // ######################
 //      SYNC SELECTION
 // ######################
-// displays syncs for selected connection, located on the top RHS
+// displays syncs for selected connection, located on the right side at the top
 class SyncSelection{
     constructor(conn){
         this.uuid = conn.uuid
@@ -114,6 +114,7 @@ class SyncSelection{
 
         let span = document.createElement("span");
         span.innerHTML = add_break_to_path(remote_dir);
+        console.log(window.data)
 
         remote_div.appendChild(i);
         remote_div.appendChild(span);
@@ -158,14 +159,9 @@ class PropertiesDisplay{
             this.display_container(event.target, this.sync_info);
         }
 
-        this.local_ignore_info = new LocalIgnoreInfo();
-        document.getElementById("loc_ign_selector").onclick = (event)=>{
-            this.display_container(event.target, this.local_ignore_info);
-        }
-
-        this.sync_ignore_info = new SyncIgnoreInfo();
-        document.getElementById("sync_ign_selector").onclick = (event)=>{
-            this.display_container(event.target, this.sync_ignore_info);
+        this.ignore_info = new IgnoreInfo();
+        document.getElementById("ign_selector").onclick = (event)=>{
+            this.display_container(event.target, this.ignore_info);
         }
 
         this.conflicts_info = new ConflictsInfo();
@@ -194,8 +190,7 @@ class PropertiesDisplay{
             this.display_container(document.getElementById("info_selector"), this.sync_info)
         }
         this.sync_info.set(uuid, local, remote);
-        this.local_ignore_info.set(uuid, local, remote);
-        this.sync_ignore_info.set(uuid, local, remote);
+        this.ignore_info.set(uuid, local, remote);
         this.conflicts_info.set(uuid, local, remote);
     }
 } 
@@ -216,25 +211,79 @@ class SyncInfo extends Container{
         this.bi_sync_span = document.getElementById("bi_sync");
         this.auto_sync_span = document.getElementById("auto_sync");
 
+        this.conflict_policy_span = document.getElementById("conflict_policy")
+        this.resolve_policy_span = document.getElementById ("resolve_policy")
+
         this.local_ignores = document.getElementById("local_ign");
         this.synced_ignores = document.getElementById("synced_ign");
     }
 
     set(uuid, local, remote){
+        console.log(remote)
         let sync = window.data.connections[uuid].syncs[local][remote];
         
         this.local_name_span.innerHTML = window.data.directories[local].name;
         this.local_path_span.innerHTML = local;
         this.remote_name_span.innerHTML = window.data.connections[uuid].directories[remote];
         this.remote_path_span.innerHTML = remote;
+        this.bi_sync_span.innerHTML =  sync.bidirectional
+
+        switch(sync.conflict_policy){
+            case 1:
+                this.conflict_policy_span.innerHTML  = "Wait for resolve"
+                break
+            case 2:
+                this.conflict_policy_span.innerHTML  = "Record conflict and proceed"
+                break
+            case 3:
+                this.conflict_policy_span.innerHTML  = "Use default resolve policy"
+                break
+        }
+
+        switch(sync.default_resolve_policy){
+            case 1:
+                this.resolve_policy_span.innerHTML = "Keep local file/folder"
+                break
+            case 2:
+                this.resolve_policy_span.innerHTML = "Replace local file/folder"
+                break
+            case 3:
+                this.resolve_policy_span.innerHTML = "Keep newest version"
+                break
+            case 4:
+                this.resolve_policy_span.innerHTML = "Create copy of file/folder"
+                break
+        }
+
+        if (sync.auto_sync === 0) this.auto_sync_span.innerHTML = "No"
+        else if (sync.auto_sync === -1) this.auto_sync_span.innerHTML = "Yes"
+        else {
+            let str = "Yes, every "
+
+            let d = Math.floor(sync.auto_sync/60/60/24)
+            let h = Math.floor(sync.auto_sync/60/60) - d*24
+            let m = Math.floor(sync.auto_sync/60) - h*60 - d*24*60
+            let s = sync.auto_sync - m*60 -h*60*60 - d*60*60*24
+
+            if (d!= 0) str += d + "d "
+            if (h!= 0) str += h + "h "
+            if (m!= 0) str += m + "m "
+            if (s!= 0) str += s + "s "
+
+            this.auto_sync_span.innerHTML = str
+        }
     }
+}
+
+function get_remote_name(remote){
+    if (window.data.connections[uuid].directories[remote] === undefined) return remote 
+    else return window.data.connections[uuid].directories[remote]
 }
 
 
 class IgnoreInfo extends Container{
-    constructor(id, ign_type){
-        super(id);
-        this.ign_type = ign_type;
+    constructor(){
+        super("ign_container");
         this.ign_patterns = {};
     }
 
@@ -242,27 +291,24 @@ class IgnoreInfo extends Container{
         let sync = window.data.connections[uuid].syncs[local][remote];
         this.div.innerHTML = "";
         
-        for (const ign_pattern of sync[this.ign_type]){
+        // temporary fix
+        for (const ign_pattern of sync["local_ignore"]){
             let span = document.createElement("span");
             span.innerHTML = ign_pattern;
             this.div.appendChild(span);
         }
+
+        for (const ign_pattern of sync["synced_ignore"]){
+            let span = document.createElement("span");
+            span.innerHTML = ign_pattern;
+            this.div.appendChild(span);
+        }
+
+        if (this.div.innerHTML===""){
+            this.div.innerHTML = "None"
+        }
     }
 }
-
-class LocalIgnoreInfo extends IgnoreInfo{
-    constructor(){
-        super("loc_ign_container", "local_ignore");
-    }
-}
-
-class SyncIgnoreInfo extends IgnoreInfo{
-    constructor(){
-        super("sync_ign_container", "synced_ignore");
-    }
-}
-
-
 
 class ConflictsInfo extends Container{
     constructor(){

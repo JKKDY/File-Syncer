@@ -34,8 +34,7 @@
             <div class=sync_info>
                 <div class=header>
                     <span id=info_selector> Sync Info </span>
-                    <span id=loc_ign_selector> Local Ignores </span>
-                    <span id=sync_ign_selector> Synced Ignores </span>
+                    <span id=ign_selector> Ignores </span>
                     <span id=conflicts_selector> Conflicts </span>
                     <span class=dummy></span>
                     <button id=edit_btn title=Edit><i class="far fa-edit"></i></button>
@@ -54,26 +53,29 @@
                             <span class=path id=loc_path></span>
                         </span>
 
-                        <span class=key>Remote directory: </span>
+                        <span class=key>Remote Directory: </span>
                         <span class=value> 
                             <span class=name id=rem_name></span>
                             <span class=path id=rem_path></span>
                         </span>
 
-                        <span class=key>Bidirectional sync:</span>
+                        <span class=key>Bidirectional Sync:</span>
                         <span class=value id=bi_sync></span>
 
-                        <span class=key>Auto sync: </span>
+                        <span class=key>Auto Sync: </span>
                         <span class=value id=auto_sync></span>
+                        
+                        <span class=key>Conflict Policy: </span>
+                        <span class=value id=conflict_policy></span>
+
+                        <span class=key>Default Resolve Policy: </span>
+                        <span class=value id=resolve_policy></span>
 
                         <!-- <span class=key>Timeout: </span>
                         <span class=value id=time_out>None</span> -->
                     </div>
 
-                    <div id=loc_ign_container>
-                    </div>
-
-                    <div id=sync_ign_container>
+                    <div id=ign_container>
                     </div>
 
                     <div id=conflicts_container>

@@ -6,6 +6,7 @@ from threading import Lock
 
 from src.Client import Client
 from src.Config import CONN_HOSTNAME_KEY, CONN_PORT_KEY, DATE_TIME_FORMAT, get_logger, temp_uuid
+from src.Codes import SYNC_STATUS
 from src.Network import NT_Code, Socket
 
 logger_name, logger = get_logger(__name__)
@@ -187,14 +188,14 @@ class Server():
         remote_dir = conn.recv_str()
         locked = self.directory_locks[local_dir].acquire(timeout=3)
         if locked: 
-            self.callbacks.sync_status_change(uuid, local_dir, remote_dir, 1)
+            self.callbacks.sync_status_change(uuid, local_dir, remote_dir, SYNC_STATUS.SYNCING)
             self.active_syncs[uuid] = local_dir
-        conn.send_int(locked)      
+        conn.send_int(locked)
     
     def _end_sync(self, uuid, conn):
         local_dir = conn.recv_str()
         remote_dir = conn.recv_str()
-        self.callbacks.sync_status_change(uuid, local_dir, remote_dir, 0)
+        self.callbacks.sync_status_change(uuid, local_dir, remote_dir, SYNC_STATUS.NOT_SYNCING)
         self.directory_locks[local_dir].release()
         del self.active_syncs[uuid]
         
