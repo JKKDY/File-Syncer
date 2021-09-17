@@ -49,7 +49,8 @@ class WebGUI(UiFrontend):
             UI_Code.NOTF_UPDATE_DIR_GRAPH : lambda *args: eel.update_directory_graph(*args)(),
             UI_Code.NOTF_NEW_CONNECTION: lambda *args: eel.new_connection(*args)(),
             UI_Code.NOTF_UPDATE_SYNC_STATE: lambda *args: eel.update_sync_state(*args)(),
-            UI_Code.NOTF_NEW_DIRECTORY: lambda *args: eel.new_directory(*args)()
+            UI_Code.NOTF_NEW_DIRECTORY: lambda *args: eel.new_directory(*args)(),
+            UI_Code.NOTF_NEW_SYNC : lambda *args : eel.new_sync(*args)()
         }) 
         
     def start(self, eel_port, block):

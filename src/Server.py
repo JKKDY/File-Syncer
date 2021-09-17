@@ -207,7 +207,7 @@ class Server():
         
         policy = self.connections.get_sync_conflict_policy(uuid, local_dir, remote_dir)
         resolve = self.connections.get_sync_conflict_resolve(uuid, local_dir, remote_dir)
-        self.clients[uuid].queue_sync(local_dir, remote_dir, policy, resolve, False, priority=0)
+        self.clients[uuid].queue_sync(local_dir, remote_dir, policy, resolve, False, priority=0).wait()
         
         conn.send_code(NT_Code.END_SYNC)
             

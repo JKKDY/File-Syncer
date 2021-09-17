@@ -46,6 +46,7 @@ class UI_Code(IntEnum):
     NOTF_NEW_DIRECTORY = auto()
     NOTF_UPDATE_SYNC_STATE = auto()
     NOTF_NEW_CONFLICT = auto()
+    NOTF_NEW_SYNC = auto()
     
     BEGINN_REQ = auto()
     END_REQ = auto()

@@ -61,70 +61,67 @@ class SyncSelection{
         this.list_div = document.createElement("div")
         this.list_div.className = "sync_list"
 
-        for (const [local_dir, syncs] of Object.entries(conn.syncs)){
-            this.add(local_dir, syncs)
+        for (const [local, syncs] of Object.entries(conn.syncs)){
+            this.add_local(local)
+            for (const [remote, sync_info] of Object.entries(syncs)){ 
+                this.add_remote(local, remote)
+            }
         }
     }
 
-
-    add(local_dir, syncs){ // add sync between a local directory and  remote directories
-        // syncs:
-        //  remote_dir1: auto_sync, bidirectional, local_ignore, synced_ignore -> sync between "local_dir" and "remote_dir1"
-        //  remote_dir2: auto_sync, bidirectional, local_ignore, synced_ignore -> sync between "local_dir" and "remote_dir2"
-        // ...
-
+    add_local(local_dir){
         // left column in selection
         let local_div = document.createElement("div");
         local_div.className = "local";
         local_div.innerHTML = add_break_to_path(window.data.directories[local_dir].name);
-        this.sync_list[local_dir] = {"div": local_div};
 
         // right column in selection
         let remote_dirs = document.createElement("div");
         remote_dirs.className = "remote_dirs";
 
-        // parent div containg everything related to syncs of "local_dir"
+        // parent div containg left and right column
         let sync_div = document.createElement("div");
         sync_div.className = "sync"
         sync_div.appendChild(local_div)
         sync_div.appendChild(remote_dirs)
 
-        for (const [remote, sync] of Object.entries(syncs)){ // for each sync from "local_dir" to a remote directory
-            let i = document.createElement("i") // sync icon
-            let icon = document.createElement("i")
-            icon.className = "fas fa-sync-alt"
-            i.appendChild(icon)
-
-            let remote_div = document.createElement("div");
-            remote_div.className = "remote";
-            remote_div.onclick = ()=>{ // onclick set this sync as active (=visually highlighted)
-                if (this.active.local) this.active.local.classList.remove("active");
-                if (this.active.remote) this.active.remote.classList.remove("active");
-                this.active.local = sync_div;
-                this.active.remote = remote_div;
-                this.active.local.classList.add("active");
-                this.active.remote.classList.add("active");
-
-                window.syncs.properties_display.set(this.uuid, local_dir, remote);
-            };
-            remote_div.set_icon_spin = (spin)=>{
-                if (spin==true) icon.className = "fas fa-sync-alt fa-spin"
-                else icon.className = "fas fa-sync-alt"
-            }
-
-            let span = document.createElement("span");
-            span.innerHTML = add_break_to_path(remote);
-
-            remote_div.appendChild(i);
-            remote_div.appendChild(span);
-            remote_dirs.appendChild(remote_div);
-            this.sync_list[local_dir][remote] = remote_div;
-            // remote_div.set_icon_spin(true)
-        }
-        
         this.list_div.appendChild(sync_div)
+        this.sync_list[local_dir] = {"local_div": local_div, "sync_div": sync_div, "remote_div":remote_dirs};
     }
 
+    add_remote(local_dir, remote_dir){
+        let i = document.createElement("i") // sync icon
+        let icon = document.createElement("i")
+        icon.className = "fas fa-sync-alt"
+        i.appendChild(icon)
+
+        let remote_div = document.createElement("div");
+        remote_div.className = "remote";
+        remote_div.onclick = ()=>{ // onclick set this sync as active (=visually highlighted)
+            if (this.active.local) this.active.local.classList.remove("active");
+            if (this.active.remote) this.active.remote.classList.remove("active");
+            this.active.local = this.sync_list[local_dir].sync_div;
+            this.active.remote = remote_div;
+            this.active.local.classList.add("active");
+            this.active.remote.classList.add("active");
+
+            window.syncs.properties_display.set(this.uuid, local_dir, remote_dir);
+        };
+        remote_div.set_icon_spin = (spin)=>{
+            if (spin==true) icon.className = "fas fa-sync-alt fa-spin"
+            else icon.className = "fas fa-sync-alt"
+        }
+
+        let span = document.createElement("span");
+        span.innerHTML = add_break_to_path(remote_dir);
+
+        remote_div.appendChild(i);
+        remote_div.appendChild(span);
+        //remote_dirs.appendChild(remote_div);
+        this.sync_list[local_dir].remote_div.appendChild(remote_div)
+        this.sync_list[local_dir][remote_dir] = remote_div;
+    }
+    
     remove(uuid){ // remove sync
 
     }
@@ -298,8 +295,6 @@ class ConflictsInfo extends Container{
     }
 
     window.callbacks.status_change.add((uuid, status)=>{
-        console.log(uuid)
-        console.log(window.syncs.conn_selection.connections)
         window.syncs.conn_selection.connections[uuid].change_status(status)
     })
 
@@ -321,9 +316,14 @@ class ConflictsInfo extends Container{
         window.syncs.sync_selections[uuid] = new SyncSelection(window.data.connections[uuid]);
     })
 
+    window.callbacks.new_sync.add((uuid, local, remote, info) => {
+        if (window.syncs.sync_selections[uuid].sync_list[local] === undefined) window.syncs.sync_selections[uuid].add_local(local)
+        window.syncs.sync_selections[uuid].add_remote(local, remote, info)
+    })
+
     window.callbacks.update_sync_state.add((uuid, local_dir, remote_dir, state) => {
-        console.log(uuid, local_dir, remote_dir, state)
-        window.syncs.sync_selections[uuid].sync_list[local_dir][remote_dir].set_icon_spin(state)
+        if (window.syncs.sync_selections[uuid].sync_list[local_dir] != undefined && window.syncs.sync_selections[uuid].sync_list[local_dir][remote_dir] != undefined)
+            window.syncs.sync_selections[uuid].sync_list[local_dir][remote_dir].set_icon_spin(state)
     })
 })();
 

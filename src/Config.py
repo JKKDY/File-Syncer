@@ -149,11 +149,12 @@ def temp_uuid(hostname, port):
     return f"temp-{hostname}-{port}"
 
 class ConnectionsList(JSON_File):
-    def __init__(self, path:Path, new_conn_callback, uuid_change_callback, uuid_update_callback):
+    def __init__(self, path:Path, new_conn_callback, uuid_change_callback, uuid_update_callback, new_sync_callback):
         super().__init__(path)
         self.uuid_change_callback = uuid_change_callback
         self.uuid_update_callback = uuid_update_callback
         self.new_conn_callback = new_conn_callback
+        self.new_sync_callback = new_sync_callback
     
     def new_connection(self, hostname, port, nick_name="", auto_connect=-1, uuid=None):
         if uuid is None: uuid = temp_uuid(hostname, port) # create temporary uuid
@@ -189,6 +190,7 @@ class ConnectionsList(JSON_File):
             SYNC_LOC_IGN_KEY: [],
             SYNC_SYNCED_IGN_KEY: []
         }
+        self.new_sync_callback(uuid, local_dir, remote_dir, self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir])
         
     def delete_sync(self, uuid, local, remote):
         del self[uuid][CONN_SYNCS_KEY][local][remote]

@@ -373,6 +373,7 @@ class Callback{
         for (const uuid of await eel.get_uuids()()) await new_conn(uuid)
         for (const path of await eel.get_directories()()) await new_dir(path)
 
+
         window.callbacks.status_change = new Callback()
         window.callbacks.uuid_change = new Callback()
         window.callbacks.update_uuid_info = new Callback()
@@ -380,6 +381,8 @@ class Callback{
         window.callbacks.new_connection = new Callback()
         window.callbacks.update_sync_state = new Callback()
         window.callbacks.new_directory = new Callback()
+        window.callbacks.new_sync = new Callback()
+
 
         window.callbacks.directory_graph_update.add((path, graph) => {
             window.data.directories[path].update_graph(graph)
@@ -406,6 +409,11 @@ class Callback{
 
         window.callbacks.new_directory.add(async (dir_path) => {
             await new_dir(dir_path)
+        })
+
+        window.callbacks.new_sync.add((uuid, local, remote, info) => {
+            if (window.data.connections[uuid].syncs[local] === undefined) window.data.connections[uuid].syncs[local] = {}
+            window.data.connections[uuid].syncs[local][remote] = info
         })
 
     } finally {
@@ -453,4 +461,9 @@ function update_sync_state(uuid, local_dir, remote_dir, status){
 eel.expose(new_directory)
 function new_directory(dir_path){
     window.callbacks.new_directory.call(dir_path)
+}
+
+eel.expose(new_sync)
+function new_sync(uuid, local, remote, info){
+    window.callbacks.new_sync.call(uuid, local, remote, info)
 }

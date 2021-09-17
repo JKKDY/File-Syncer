@@ -22,7 +22,8 @@ class FileSyncer(Config):
     def __init__(self, config_path:Path):
         super().__init__(config_path)
         logger.info("Filesyncer start") 
-        self.connections_list = ConnectionsList(self.data_path/"connections.json", self.new_connection_callback, self.uuid_change_callback, self.update_uuid_info_callback)
+        self.connections_list = ConnectionsList(self.data_path/"connections.json", self.new_connection_callback, \
+            self.uuid_change_callback, self.update_uuid_info_callback, self.new_sync_callback)
         self.directories_list = DirectoriesList(self.data_path/"directories.json")
         self.sessions = Sessions(self.data_path/"sessions.json")
         self.uuid = get_uuid(self.data_path)
@@ -194,6 +195,9 @@ class FileSyncer(Config):
     def update_sync_status_callback(self, uuid, local, remote, state): 
         self.ui.notify(UI_Code.NOTF_UPDATE_SYNC_STATE, uuid, local, remote, state)
         
-    def new_conflict_callback(self, uuid, local, remote, obj, conflict_type): #obj either a file or  folder
+    def new_sync_callback(self, uuid, local, remote, sync_info):
+        self.ui.notify(UI_Code.NOTF_NEW_SYNC, uuid, local, remote, sync_info)
+        
+    def new_conflict_callback(self, uuid, local, remote, obj, conflict_type): #obj either a file or folder
         self.ui.notify(UI_Code.NOTF_NEW_CONFLICT, uuid, local, remote, obj, conflict_type)
 
