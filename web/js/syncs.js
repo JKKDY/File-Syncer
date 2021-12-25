@@ -84,6 +84,9 @@ class SyncSelection{
         sync_div.className = "sync"
         sync_div.appendChild(local_div)
         sync_div.appendChild(remote_dirs)
+        sync_div.onclick = ()=>{
+            if (this.active.local != this.sync_list[local_dir].sync_div) remote_dirs.children[0].on_click()
+        }
 
         this.list_div.appendChild(sync_div)
         this.sync_list[local_dir] = {"local_div": local_div, "sync_div": sync_div, "remote_div":remote_dirs};
@@ -97,7 +100,7 @@ class SyncSelection{
 
         let remote_div = document.createElement("div");
         remote_div.className = "remote";
-        remote_div.onclick = ()=>{ // onclick set this sync as active (=visually highlighted)
+        remote_div.on_click = ()=>{ // onclick set this sync as active (=visually highlighted)
             if (this.active.local) this.active.local.classList.remove("active");
             if (this.active.remote) this.active.remote.classList.remove("active");
             this.active.local = this.sync_list[local_dir].sync_div;
@@ -107,18 +110,20 @@ class SyncSelection{
 
             window.syncs.properties_display.set(this.uuid, local_dir, remote_dir);
         };
+        remote_div.addEventListener("click", (event)=>{
+            event.stopPropagation()
+            remote_div.on_click()
+        })
+
         remote_div.set_icon_spin = (spin)=>{
             if (spin==true) icon.className = "fas fa-sync-alt fa-spin"
             else icon.className = "fas fa-sync-alt"
         }
 
         let span = document.createElement("span");
-        span.innerHTML = add_break_to_path(remote_dir);
-        console.log(window.data)
-
+        span.innerHTML = get_remote_name(remote_dir)
         remote_div.appendChild(i);
         remote_div.appendChild(span);
-        //remote_dirs.appendChild(remote_div);
         this.sync_list[local_dir].remote_div.appendChild(remote_div)
         this.sync_list[local_dir][remote_dir] = remote_div;
     }
@@ -131,7 +136,20 @@ class SyncSelection{
 
     }
 
+    is_active(local_dir, remote_dir){
+        return (this.active.local === this.sync_list[local_dir].sync_div && this.active.remote === this.sync_list[local_dir][remote_dir])
+    }
+
 }
+function get_remote_name(remote){
+    try{
+        if (window.data.connections[uuid].directories[remote] === undefined) return remote.split("\\")[-1]
+        else return window.data.connections[uuid].directories[remote]
+    } catch{
+        return  remote.split("\\").at(-1)
+    }
+}
+
 
 
 
@@ -219,12 +237,11 @@ class SyncInfo extends Container{
     }
 
     set(uuid, local, remote){
-        console.log(remote)
         let sync = window.data.connections[uuid].syncs[local][remote];
         
         this.local_name_span.innerHTML = window.data.directories[local].name;
         this.local_path_span.innerHTML = local;
-        this.remote_name_span.innerHTML = window.data.connections[uuid].directories[remote];
+        this.remote_name_span.innerHTML = get_remote_name(remote);
         this.remote_path_span.innerHTML = remote;
         this.bi_sync_span.innerHTML =  sync.bidirectional
 
@@ -275,12 +292,6 @@ class SyncInfo extends Container{
     }
 }
 
-function get_remote_name(remote){
-    if (window.data.connections[uuid].directories[remote] === undefined) return remote 
-    else return window.data.connections[uuid].directories[remote]
-}
-
-
 class IgnoreInfo extends Container{
     constructor(){
         super("ign_container");
@@ -316,7 +327,57 @@ class ConflictsInfo extends Container{
     }   
 
     set(uuid, local, remote){
+        for (const [k, conflict] of Object.entries(window.data.connections[uuid].conflicts[local][remote])){
+            const [path, is_dir]  = k.split(",")
+            this.create_conflict(path, is_dir, conflict)
+        }
+    }
 
+    create_conflict(path, is_dir, conflict){
+        let conflict_div = document.createElement("div")
+        conflict_div.className = "conflict"
+
+        let icon = document.createElement("i")
+        icon.className = "fas fa-chevron-down" + " chevron"
+        conflict_div.appendChild(icon)
+
+        let type_icon = document.createElement("i")
+        if (is_dir === false) type_icon.className = "far fa-folder type_indicator"
+        else type_icon.className = "far fa-file type_indicator"
+
+        if (conflict.resolve_policy !== false){
+            type_icon.className += " resolved"
+            icon.className  += " resolved"
+        }
+
+        let path_span = document.createElement("span")
+        path_span.className = "path"
+        path_span.appendChild(type_icon)
+        path_span.innerHTML += " " + path
+        conflict_div.appendChild(path_span)
+
+        console.log(conflict)    
+        console.log(conflict.local_modif_time)
+        console.log(conflict.remote_modif_time)
+        
+        function create_pair(key_html, value_html){
+            let key = document.createElement("span")
+            key.className = "key"
+            key.innerHTML = key_html
+            conflict_div.appendChild(key)
+
+            let value = document.createElement("span")
+            value.className = "value"
+            value.innerHTML = value_html
+            conflict_div.appendChild(value)
+        }
+
+        create_pair("Conflict type:", conflict.conflict_type)
+        create_pair("Last local modifaction time:", conflict.local_modif_time)
+        create_pair("Last remote modifaction time:", conflict.remote_modif_time)
+        create_pair("Resolve policy:", conflict.resolve_policy)
+
+        this.div.appendChild(conflict_div)
     }
 }
 
@@ -340,6 +401,7 @@ class ConflictsInfo extends Container{
         window.syncs.sync_selections[uuid] = new SyncSelection(conn);
     }
 
+    // callbacks
     window.callbacks.status_change.add((uuid, status)=>{
         window.syncs.conn_selection.connections[uuid].change_status(status)
     })
@@ -371,6 +433,15 @@ class ConflictsInfo extends Container{
         if (window.syncs.sync_selections[uuid].sync_list[local_dir] != undefined && window.syncs.sync_selections[uuid].sync_list[local_dir][remote_dir] != undefined)
             window.syncs.sync_selections[uuid].sync_list[local_dir][remote_dir].set_icon_spin(state)
     })
-})();
 
+    window.callbacks.new_conflict.add((uuid, local, remote, path, is_dir, conflict) => {
+        if (window.syncs.sync_selections[uuid].is_active(local, remote)){
+            window.syncs.properties_display.conflicts_info.create_conflict(path, is_dir, conflict)
+        }
+    })
+
+    window.callbacks.delete_conflict.add((uuid, local, remote, path, is_dir) => {
+
+    })
+})();
 

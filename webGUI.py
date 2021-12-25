@@ -11,8 +11,6 @@ def keys(d, ret = []):
 
 
 # TODO: add debug logging
-# TODO: make seperate process for test purposes
-
 
 @eel.expose
 def get_uuids(): return webgui.request(UI_Code.REQ_UUIDS) 
@@ -36,6 +34,15 @@ def connect(uuid): return webgui.request(UI_Code.UUID_CONNECT, uuid)
 @eel.expose
 def disconnect(uuid): webgui.request(UI_Code.UUID_DISCONNECT, uuid)
 @eel.expose
+def get_conflicts(uuid, local, remote): 
+    files, folders =  webgui.request(UI_Code.UUID_REQ_CONFLICTS, uuid, local, remote)
+    files = {str(path):conflict.__dict__ for path, conflict in files.items()}
+    folders = {str(path):conflict.__dict__ for path, conflict in folders.items()}
+    return files, folders
+@eel.expose
+def resolve_conflicts(uuid, local_dir, remote_dir, rel_path, is_dir, resolve_policy): 
+    webgui.request(UI_Code.UUID_RESOLVE_CONFLICT, uuid, local_dir, remote_dir, rel_path, is_dir, resolve_policy)
+@eel.expose
 def sync(uuid, local, remote): webgui.request(UI_Code.UUID_SYNC, uuid, local, remote)
 
 
@@ -47,11 +54,16 @@ class WebGUI(UiFrontend):
             UI_Code.NOTF_UPDATE_UUID_INFO : lambda *args: eel.update_uuid_info(*args)(),
             UI_Code.NOTF_UPDATE_STATUS : lambda *args: eel.update_status(*args)(),
             UI_Code.NOTF_UPDATE_DIR_GRAPH : lambda *args: eel.update_directory_graph(*args)(),
-            UI_Code.NOTF_NEW_CONNECTION: lambda *args: eel.new_connection(*args)(),
-            UI_Code.NOTF_UPDATE_SYNC_STATE: lambda *args: eel.update_sync_state(*args)(),
-            UI_Code.NOTF_NEW_DIRECTORY: lambda *args: eel.new_directory(*args)(),
+            UI_Code.NOTF_NEW_CONNECTION : lambda *args: eel.new_connection(*args)(),
+            UI_Code.NOTF_UPDATE_SYNC_STATE : lambda *args: eel.update_sync_state(*args)(),
+            UI_Code.NOTF_NEW_DIRECTORY : lambda *args: eel.new_directory(*args)(),
+            UI_Code.NOTF_NEW_CONFLICT : lambda *args: self.new_conflict(*args),
+            UI_Code.NOTF_DEL_CONFLICT : lambda *args: eel.delete_conflict(*args)(),
             UI_Code.NOTF_NEW_SYNC : lambda *args : eel.new_sync(*args)()
         }) 
+        
+    def new_conflict(self, uuid, local, remote, path, is_dir, conflict):
+        eel.new_conflict(uuid, local, remote, path, is_dir, conflict.__dict__)()
         
     def start(self, eel_port, block):
         self.start_event_loop()

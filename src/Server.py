@@ -4,7 +4,7 @@ import socket
 import threading
 from threading import Lock
 
-from src.Client import Client
+from src.Client import Client, Conflicts
 from src.Config import CONN_HOSTNAME_KEY, CONN_PORT_KEY, DATE_TIME_FORMAT, get_logger, temp_uuid
 from src.Codes import SYNC_STATUS
 from src.Network import NT_Code, Socket
@@ -14,23 +14,23 @@ logger_name, logger = get_logger(__name__)
 
 
 class Callbacks:
-    def __init__(self, status_change, sync_status_change, new_conflict):
+    def __init__(self, status_change, sync_status_change, new_conflict, delete_conflict):
         self.status_change = status_change
         self.sync_status_change = sync_status_change
         self.new_conflict = new_conflict
+        self.delete_conflict = delete_conflict
         
         
         
 
 class Server():
-    def __init__(self, hostname, ip, port, uuid, file_tracker, sessions, \
-        connections, log_settings, callbacks):
-        
+    def __init__(self, hostname, ip, port, uuid, file_tracker, sessions, connections, log_settings, callbacks, data_path):
         self.file_tracker = file_tracker
         self.sessions = sessions    
         self.connections = connections # connection data
         self.logging_settings = log_settings
         self.callbacks = callbacks
+        self.data_path = data_path
         
         self.hostname = hostname
         self.ip = ip
@@ -69,7 +69,7 @@ class Server():
                 if uuid: # connection successfully accepted
                     if uuid not in self.clients: # if this server not connected to uuid
                         
-                        # if uuid is not know update or create new entry
+                        # if uuid is not known update or create new entry
                         if uuid not in self.connections:
                             if temp_uuid(hostname, port) not in self.connections: # connection has also not been entered by the user 
                                 self.connections.new_connection(hostname, port, uuid=uuid) 
@@ -112,8 +112,8 @@ class Server():
     def _connect(self, uuid, hostname, port):
         try:
             # establish connection
-            client = Client(self.uuid, self.sessions, self.file_tracker, self.logging_settings, \
-                            self.directory_locks, self.callbacks.sync_status_change, self.callbacks.new_conflict)
+            client = Client(self.uuid, self.sessions, self.file_tracker, self.logging_settings, self.directory_locks, \
+                self.callbacks.sync_status_change, self.callbacks.new_conflict, self.data_path)
             server_uuid, dir_info = client.connect(hostname, port)
             
             # tell connection who we are

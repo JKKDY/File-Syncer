@@ -7,10 +7,10 @@ class CONFLICT_POLICY(IntEnum):
     
     
 class RESOLVE_POLICY(IntEnum):
-    KEEP_LOCAL = 1       
-    REPLACE_LOCAL = 2
+    USE_LOCAL = 1       
+    USE_REMOTE = 2
     USE_NEWEST = 3
-    CREATE_COPY = 4
+    KEEP_ALL = 4
     
     
 class CONFLICT_TYPE(IntEnum):

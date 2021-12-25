@@ -180,17 +180,17 @@ class ConnectionsList(JSON_File):
     def get_sync_conflict_resolve(self, uuid, local_dir, remote_dir):
         return self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir][SYNC_RESOLVE_POLICY_KEY]
 
-    def add_sync(self, uuid, local_dir, remote_dir, policy=CONFLICT_POLICY.PROCEED_AND_RECORD, resolve=RESOLVE_POLICY.CREATE_COPY, auto_sync=-1, bidirectional=True):
-        if local_dir not in self[uuid][CONN_SYNCS_KEY]: self[uuid][CONN_SYNCS_KEY][local_dir] = {}
-        self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir] = {
+    def add_sync(self, uuid, local_dir, remote_dir, local_ignores=[], synced_ignores=[], policy=CONFLICT_POLICY.PROCEED_AND_RECORD, resolve=RESOLVE_POLICY.KEEP_ALL, auto_sync=-1, bidirectional=True):
+        if local_dir not in self[uuid][CONN_SYNCS_KEY]: self[uuid][CONN_SYNCS_KEY][local_dir] = JSON_Data({}, self, self.auto_save)
+        self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir] = JSON_Data({
             SYNC_BIDIR_KEY:bidirectional,
             SYNC_AUTO_KEY: auto_sync,
             SYNC_CONFLICT_POLICY_KEY: policy,
             SYNC_RESOLVE_POLICY_KEY: resolve,
-            SYNC_LOC_IGN_KEY: [],
-            SYNC_SYNCED_IGN_KEY: []
-        }
-        self.new_sync_callback(uuid, local_dir, remote_dir, self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir])
+            SYNC_LOC_IGN_KEY: local_ignores,
+            SYNC_SYNCED_IGN_KEY: synced_ignores
+        }, self, self.auto_save)
+        self.new_sync_callback(uuid, local_dir, remote_dir, self[uuid][CONN_SYNCS_KEY][local_dir][remote_dir].to_dict())
         
     def delete_sync(self, uuid, local, remote):
         del self[uuid][CONN_SYNCS_KEY][local][remote]

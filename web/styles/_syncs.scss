@@ -45,7 +45,7 @@
 
 #Syncs .syncs{
     display: grid;
-    grid-template-rows: calc(51vh - 3*2vh) 49vh;
+    grid-template-rows: calc(48vh - 3*2vh) auto;
     padding: 2vh 2vw;
     gap:  2vh;
 
@@ -157,7 +157,7 @@
         display: grid;
         justify-items: center;
         grid-template-columns: calc(1em + 2vw) 1fr;
-        padding: 0.6vh 0;
+        padding: 1vh 0;
         i{
             grid-column: 1;
             .fa-sync-alt{
@@ -191,12 +191,12 @@
 
 #Syncs .sync_info{
     display: grid;
-    grid-template-rows: calc(1.5em + 2vh) calc(49vh - 2 * 10px - 1.5em - 2vh); //height of div(49vh) - padding - header height
-    
+    grid-template-rows: calc(1.5em + 2vh) calc(52vh - 2 * 10px - 1.5em - 2vh); //height of div(52vh) - padding - header height
+    height: 100%;
     
     .header{
         display: grid;
-        grid-template-columns: repeat(4, max-content  ) 1fr repeat(3, max-content);
+        grid-template-columns: repeat(3, max-content  ) 1fr repeat(3, max-content);
         align-items: center;
         justify-items: center;
         border-bottom: 3px solid $color3;
@@ -205,7 +205,8 @@
         >span{
             font-size: 16px;
             padding: 0 2px;
-            margin: 0 1vw;
+            margin-right: 1vw;
+            margin-left: 0.5vw;
             color: $font_color2;
             transition: all $trans_time ease 0s;
             padding-bottom: 3px;
@@ -245,11 +246,11 @@
 
 
 
-
+//#### PROPERTIES
     #props_container{
         padding-top: 1vh;
-        padding-left: 0.5vw;
-        padding-right: 0.5vw;
+        padding-left: 0.3vw;
+        padding-right: 0.3vw;
         min-width: 0;
         min-height: 0;
         &>div{
@@ -281,6 +282,7 @@
             grid-column: 1;
             color: $font_color2;
             padding-right: 3vw;
+            padding-left: 0.3vw
         }     
         .value{
             grid-column: 2;
@@ -289,7 +291,7 @@
         }
     }
 
-    #loc_ign_container, #sync_ign_container{
+    #ign_container{
         overflow-y:scroll;
         display: grid;
         grid-auto-rows: calc(1.5em + 1vh);
@@ -299,14 +301,85 @@
         span{
             display: inline-block;
             vertical-align: middle;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 16px;
+            font-weight: 400;
             &:before{ 
                 content: "•";
                 vertical-align: middle;
                 font-size: 20px;
                 color: $accent_color3;
                 padding-right: 1vw;
+            }
+        }
+    }
+
+    #conflicts_container{
+        overflow-y:scroll;
+        display: grid;
+        grid-auto-rows: min-content;
+        overflow-y: scroll;
+        overflow-x: auto;
+        width: 100%;
+        height: 100%;
+        font-size: 16px;
+        font-weight: 400;
+        min-width: 0;
+        min-height: 0;
+        transition: all $trans_time ease 0s; 
+
+        .conflict{
+            display: grid;
+            grid-auto-rows: calc(0.6em + 1.8vh);
+            grid-template-columns: max-content max-content 1fr;
+            align-items: center;
+            border-radius: 7px;
+            padding-bottom: 2px;
+            margin-right: 2vw;
+            margin-bottom: 2.1vh;
+            .path{
+                font-weight: 500;
+                font-size: 16px;
+                &:hover{
+                    cursor: pointer;
+                }
+                i{
+                    padding-right: 0.3vw
+                }
+            }
+
+            i{
+                align-self: left;
+                justify-self: left;
+                color: $color_negative;
+                font-size: 16px;
+                &:hover{
+                    cursor: pointer;
+                }
+            }
+
+            .resolved{
+                color: $accent_color1;
+            }
+
+            .chevron{
+                padding-left: 0.4vw;
+                padding-right: 0.6vw;
+            }
+
+
+
+            .key{
+                grid-column: 2;
+                color: $font_color2;
+                padding-right: 3vw;
+            }
+
+            .value{
+                grid-column: 3;
+            }
+
+            &:hover{
+                background-color: $color3;
             }
         }
     }

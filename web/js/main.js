@@ -127,6 +127,12 @@ class Connection{
         this.port = info.port;
         this.syncs = info.syncs;
         this.auto_connect = info.auto_connect;
+        this.conflicts = {}
+        for (const [local, remotes] of Object.entries(this.syncs)){
+            for (const [remote, sync] of Object.entries(remotes)){
+                this.conflicts[local] = {[remote]:{}}
+            }
+        }
     }
 }
 
@@ -148,7 +154,7 @@ class Directory{
 }
 
 
-class Folder{
+class Folder{ //has to be in main since main is loaded first
     constructor(name){
         this.name = name;
         this.folders = {};
@@ -265,8 +271,6 @@ class Folder{
         }
     }
    
-
-
     update(graph){
         this.name = graph.name;
         
@@ -368,10 +372,23 @@ class Callback{
         window.data.directories[path] = new Directory(path, info, graph);
     }
 
+    function add_conflict(uuid, local, remote, path, is_dir, conflict){
+        window.data.connections[uuid].conflicts[local][remote][[path,is_dir]] = conflict
+    }
 
+    // load data
     try {
         for (const uuid of await eel.get_uuids()()) await new_conn(uuid)
         for (const path of await eel.get_directories()()) await new_dir(path)
+        for (const [uuid, conn] of Object.entries(window.data.connections)) {
+            for (const [local, remotes] of Object.entries(conn.syncs)){
+                for (const [remote, sync] of Object.entries(remotes)){
+                    let [files, folders] = await eel.get_conflicts(uuid, local, remote)()
+                    for (const [file, conflict] of Object.entries(files)) add_conflict(uuid, local, remote, file, false, conflict)
+                    for (const [folder, conflict] of Object.entries(folders)) add_conflict(uuid, local, remote, folder, true, conflict)
+                }
+            }
+        }
 
 
         window.callbacks.status_change = new Callback()
@@ -382,6 +399,8 @@ class Callback{
         window.callbacks.update_sync_state = new Callback()
         window.callbacks.new_directory = new Callback()
         window.callbacks.new_sync = new Callback()
+        window.callbacks.new_conflict = new Callback()
+        window.callbacks.delete_conflict = new Callback()
 
 
         window.callbacks.directory_graph_update.add((path, graph) => {
@@ -412,8 +431,20 @@ class Callback{
         })
 
         window.callbacks.new_sync.add((uuid, local, remote, info) => {
-            if (window.data.connections[uuid].syncs[local] === undefined) window.data.connections[uuid].syncs[local] = {}
+            if (window.data.connections[uuid].syncs[local] === undefined) { // if syncs[local] is undef, conflicts[local] will be undef as well
+                window.data.connections[uuid].syncs[local] = {}
+                window.data.connections[uuid].conflicts[local] = {}
+            }
             window.data.connections[uuid].syncs[local][remote] = info
+            window.data.connections[uuid].conflicts[local][remote] = {}
+        })
+
+        window.callbacks.new_conflict.add((uuid, local, remote, path, is_dir, conflict) => {
+            add_conflict(uuid, local, remote, path, is_dir, conflict)
+        })
+
+        window.callbacks.delete_conflict.add((uuid, local, remote, path, is_dir) => {
+        
         })
 
     } finally {
@@ -466,4 +497,14 @@ function new_directory(dir_path){
 eel.expose(new_sync)
 function new_sync(uuid, local, remote, info){
     window.callbacks.new_sync.call(uuid, local, remote, info)
+}
+
+eel.expose(new_conflict)
+function new_conflict(uuid, local, remote, path, is_dir, conflict){
+    window.callbacks.new_conflict.call(uuid, local, remote, path, is_dir, conflict)
+}
+
+eel.expose(delete_conflict)
+function delete_conflict(uuid, local, remote, path, is_dir){
+    window.callbacks.delete_conflict.call(uuid, local, remote, path, is_dir)
 }

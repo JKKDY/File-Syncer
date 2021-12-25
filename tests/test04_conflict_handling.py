@@ -3,6 +3,7 @@ from multiprocessing import Process, Event
 from time import sleep
 
 import webGUI
+import os
 from src.FileSyncer import FileSyncer
 from src.Codes import RESOLVE_POLICY
 from reset_test_env import reset_syncer, reset_dirs
@@ -22,21 +23,23 @@ def syncer1(e1, e2):
         local =  this/"dir1"
         remote =  this/"dir2"
         syncer.add_directory(this/"dir1", name="dir1", ignore_patterns=["*.ign"])
-        print(syncer.sync(uuid, local, remote).wait())
+        print(f"\n Result: {str(syncer.sync(uuid, local, remote).wait())} \n")
         
-        with open(this / "dir1/file_in_dir1.txt", "w") as file: file.write("a"*1000)
+        #with open(this / "dir1/file_in_dir1.txt", "w") as file: file.write("a"*1000)
         with open(this / "dir2/file_in_dir1.txt", "w") as file: file.write("b"*1000)
+        os.remove(this / "dir1/file_in_dir1.txt")
 
-        print(syncer.sync(uuid, local, remote).wait())
+        print(f"\n Result: {str(syncer.sync(uuid, local, remote).wait())} \n")
         
-        folders, files = syncer.get_conflicts(uuid, local, remote)
+        files, folders = syncer.get_conflicts(uuid, local, remote)
+        print(files, folders)
 
-        syncer.resolve_conflict(uuid, this/"dir1", this/"dir2", list(files.keys())[0], False, RESOLVE_POLICY.CREATE_COPY)
+        syncer.resolve_conflict(uuid, this/"dir1", this/"dir2", list(files.keys())[0], False, RESOLVE_POLICY.KEEP_ALL)
         #syncer.resolve_conflict(uuid, this/"dir1", this/"dir2", list(files.keys())[0], False, RESOLVE_POLICY.USE_NEWEST)
-        #syncer.resolve_conflict(uuid, this/"dir1", this/"dir2", list(files.keys())[0], False, RESOLVE_POLICY.KEEP_LOCAL)
-        #syncer.resolve_conflict(uuid, this/"dir1", this/"dir2", list(files.keys())[0], False, RESOLVE_POLICY.REPLACE_LOCAL)
+        #syncer.resolve_conflict(uuid, this/"dir1", this/"dir2", list(files.keys())[0], False, RESOLVE_POLICY.USE_LOCAL)
+        #syncer.resolve_conflict(uuid, this/"dir1", this/"dir2", list(files.keys())[0], False, RESOLVE_POLICY.USE_REMOTE)
 
-        print(syncer.sync(uuid, local, remote).wait())
+        print(f"\n Result: {str(syncer.sync(uuid, local, remote).wait())} \n")
         e1.set()
         print("Sync done")
         #webGUI.start(syncer.ui_port)

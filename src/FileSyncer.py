@@ -1,7 +1,9 @@
+import pickle
 import time
 from enum import IntEnum
 from pathlib import Path
 from threading import Thread, Lock
+from src.Client import Conflicts
 
 from src.Config import get_logger, ConnectionsList, DirectoriesList, Sessions, Config, get_uuid, CFG_GLOB_IGN_KEY, CONN_AUTO_CONNECT_KEY
 from src.FileTracker import FileTracker
@@ -12,10 +14,17 @@ from src.Codes import CONFLICT_POLICY, RESOLVE_POLICY
 
 logger_name, logger = get_logger(__name__)
 
+class Conflict:
+    def __init__(self, typ, loc_mod, rem_mod, policy) -> None:
+        self.conflict_type = typ
+        self.local_modif_time = loc_mod
+        self.remote_modif_time = rem_mod
+        self.resolve_policy = policy
 
 
 # TODO: add encryption 
 # TODO: sync optimization; check if files have been moved/renamed etc
+# TODO: add timeout to recv. When timeout is hit, connection is marked as disconnected.
 
 
 class FileSyncer(Config):
@@ -30,11 +39,11 @@ class FileSyncer(Config):
         self.will_shut_down = False
         
         self.file_tracker = FileTracker(self.directories_list, self.logging_settings, self.data_path, \
-                                        self.global_ign_patterns, self.update_directory_graph_callback, self.new_directory_callback)
+            self.global_ign_patterns, self.update_directory_graph_callback, self.new_directory_callback)
         
-        server_callbacks = Callbacks(self.update_status_callback, self.update_sync_status_callback, self.new_conflict_callback)
+        server_callbacks = Callbacks(self.update_status_callback, self.update_sync_status_callback, self.new_conflict_callback, self.delete_conflict_callback)
         self.server = Server(self.hostname, self.ip, self.port, self.uuid, self.file_tracker, self.sessions, \
-            self.connections_list, self.logging_settings, server_callbacks)
+            self.connections_list, self.logging_settings, server_callbacks, self.data_path)
         self.server_thread = Thread(target=self.server.start_server, name ="server_thread") 
         
         self.auto_connect_thread = RepeatedJob(self.auto_connect_rate, target=self._auto_connect, name="auto_connect_thread")  
@@ -132,21 +141,25 @@ class FileSyncer(Config):
         
         
     # syncs    
-    def add_sync(self, uuid, local, remote, conflict_policy=CONFLICT_POLICY.PROCEED_AND_RECORD, default_resolve=RESOLVE_POLICY.CREATE_COPY, auto_sync=-1, bidirectional=True):
-        self.connections_list.add_sync(uuid, str(local), str(remote), conflict_policy, default_resolve, auto_sync, bidirectional)
+    def add_sync(self, uuid, local, remote, local_ignores=[], synced_ignores=[], conflict_policy=CONFLICT_POLICY.PROCEED_AND_RECORD, default_resolve=RESOLVE_POLICY.KEEP_ALL, auto_sync=-1, bidirectional=True):
+        self.connections_list.add_sync(uuid, str(local), str(remote), local_ignores, synced_ignores, conflict_policy, default_resolve, auto_sync, bidirectional)
     
     def delete_sync(self, uuid, local, remote):
         self.connections_list.delete_sync(uuid, local, remote)
         
-    def sync(self, uuid, local_dir, remote_dir, conflict_policy=CONFLICT_POLICY.PROCEED_AND_RECORD, default_resolve=RESOLVE_POLICY.CREATE_COPY, bidirectional=True, priority=-1, block_backsync=True): 
+    def sync(self, uuid, local_dir, remote_dir, conflict_policy=CONFLICT_POLICY.PROCEED_AND_RECORD, default_resolve=RESOLVE_POLICY.KEEP_ALL, bidirectional=True, priority=-1, block_backsync=True): 
         return self.server.clients[uuid].queue_sync(local_dir, remote_dir, conflict_policy, default_resolve, bidirectional, priority)
     
-    def resolve_conflict(self, uuid, local_dir, remote_dir, rel_path, is_dir, resolve_policy):
-        self.server.clients[uuid].resolve_conflict(local_dir, remote_dir, rel_path, is_dir, resolve_policy)
-        
     def get_conflicts(self, uuid, local_dir, remote_dir):
+        if uuid not in self.server.clients: # cannot load conflicts beforehand as there might be temporary uuids flying around
+            return Conflicts(self.data_path / f"Conflicts_{uuid}.pickle").get_conflicts(local_dir, remote_dir)
         return self.server.clients[uuid].get_conflicts(local_dir, remote_dir)
     
+    def resolve_conflict(self, uuid, local_dir, remote_dir, rel_path, is_dir, resolve_policy):
+        if uuid not in self.server.clients:
+            Conflicts(self.data_path / f"Conflicts_{self.remote_uuid}.pickle").resolve_conflict(local_dir, remote_dir, rel_path, is_dir, resolve_policy)
+        self.server.clients[uuid].resolve_conflict(local_dir, remote_dir, rel_path, is_dir, resolve_policy)
+ 
     
     # directories 
     def add_directory(self, directory, name="", ignore_patterns=[]):
@@ -198,6 +211,9 @@ class FileSyncer(Config):
     def new_sync_callback(self, uuid, local, remote, sync_info):
         self.ui.notify(UI_Code.NOTF_NEW_SYNC, uuid, local, remote, sync_info)
         
-    def new_conflict_callback(self, uuid, local, remote, obj, conflict_type): #obj either a file or folder
-        self.ui.notify(UI_Code.NOTF_NEW_CONFLICT, uuid, local, remote, obj, conflict_type)
+    def new_conflict_callback(self, uuid, local, remote, rel_path, is_dir, conflict): 
+        self.ui.notify(UI_Code.NOTF_NEW_CONFLICT, uuid, local, remote, rel_path, is_dir, conflict)
+        
+    def delete_conflict_callback(self, uuid, local, remote, rel_path, is_dir):
+        self.ui.notify(UI_Code.NOTF_DEL_CONFLICT, uuid, local, remote, rel_path, is_dir)
 

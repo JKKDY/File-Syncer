@@ -28,6 +28,7 @@ class DirectoryElement:
         self.locations = {DEFAULT_TIME:rel_path} # will be used later for when file movement detection is implemented
         self.logger = logging.getLogger(f"{logger_name}.{hash_word(dir_path)}")
         self._deleted = DEFAULT_TIME
+        self._modified = DEFAULT_TIME
         self._created = DEFAULT_TIME
         self.hash = 0
 
@@ -39,11 +40,14 @@ class DirectoryElement:
     def created(self, time=now()) -> None:
         self._deleted = DEFAULT_TIME
         self._created = time
+        self._modified = time
     
     def deleted(self, time=now()) -> None:
-        self._deleted = time
+        self._deleted = time # maybe use whatchdog to get a more acurate deletion time 
         self._created = DEFAULT_TIME
+        self._modified = DEFAULT_TIME
         
+    # only when this function is called, will there be any queres to the os
     def update(self): raise NotImplementedError # to override
     
     def is_modified(self): raise NotImplementedError # to override
@@ -75,18 +79,20 @@ class File(DirectoryElement):
         
     @property
     def last_modif_time(self) -> datetime.datetime: 
-        return max(datetime.datetime.utcfromtimestamp(self.full_path.stat().st_mtime), self._created)
+        return max(self._modified, self._created)
     
-    def update(self):
+    def update(self) -> None:
         if not self.exists: self.created()
         # update hash if file has been modified since last update
         if (new_hash := hashfile(self.full_path)) != self.hash:
             self.hash = new_hash
+            # indented so only when contents of file are actually modified, it will be recorded
+            self._modified = datetime.datetime.utcfromtimestamp(self.full_path.stat().st_mtime) 
             
     def is_modified(self, time) -> bool:
         """ returns boolean value wether file has been modified during the time span between now and *time*"""
-        if self.full_path.exists(): return self.last_modif_time > time
-        else: return self._deleted > time  # self._created > time #? shouldnt it be self._deleted?
+        if self.full_path.exists(): return self.last_modif_time > time # should prob be self.exists
+        else: return False 
             
    
    
@@ -181,9 +187,8 @@ class Folder(DirectoryElement):
         # update_on_creation is set to false since the files/folders must be downloaded first
         for file in other.files:
             if not self.is_in_ignore(file, is_file=True):
-                if other.files[file].exists:
-                    other_file = File(other.files[file].rel_path, self.dir_path, False)
-                    
+                other_file = File(other.files[file].rel_path, self.dir_path, False)
+                if other.files[file].exists:                    
                     if file not in self.files:
                         # self does not contain *file*
                         self.files[file] = other_file
@@ -193,6 +198,9 @@ class Folder(DirectoryElement):
                         if self.files[file].is_modified(last_time_synced):
                             # both have been modifed since last sync -> conflict
                            conflict_callback(self, other, file, other_file, False, CONFLICT_TYPE.MODIF_CONFLICT) 
+                        elif not self.files[file].exists:
+                            # self.file has been deleted but the other.file exists -> conflict 
+                            conflict_callback(self, other, file, other_file, False, CONFLICT_TYPE.DELETE_CONFLICT)
                         else:
                             self.files[file] = other_file
                             
@@ -206,11 +214,14 @@ class Folder(DirectoryElement):
                             
         for folder in other.folders:
             if not self.is_in_ignore(folder, is_file=False):
+                other_folder = Folder(other.folders[folder].location(), self.dir_path, self.ignore_patterns,False)
                 if other.folders[folder].exists:
-                    other_folder = Folder(other.folders[folder].location(), self.dir_path, self.ignore_patterns,False)
                     if folder not in self.folders:
                         # self does not contain *folder*
                         self.folders[folder] = other_folder
+                    if not self.folders[folder].exists:
+                        # self.folder has been deleted but the other.folder exists -> conflict 
+                        conflict_callback(self, other, folder, other_folder, True, CONFLICT_TYPE.DELETE_CONFLICT)
                     
                     # merge subfolders aswell
                     self.folders[folder].merge(other.folders[folder], last_time_synced, conflict_callback)
