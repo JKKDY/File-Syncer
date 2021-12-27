@@ -127,8 +127,8 @@ $overflow_padding: 7px;
             width: 170px;
         }
         .circle_btn.plus{
-            height: $header_font_size + 2px;
-            width: $header_font_size + 2px;
+            height: $header_font_size;
+            width: $header_font_size;
             margin-left: 0px;
         }
     }
@@ -336,7 +336,7 @@ $overflow_padding: 7px;
 }
 
 
-#add_window{
+#add_connection_window{
     padding: 25px 50px;
     height: 250px;
     width: 350px;
@@ -357,7 +357,7 @@ $overflow_padding: 7px;
         grid-template-columns: min-content 1fr;
         align-items: center;
         label{
-            padding-right: 30px;
+            padding-right: 1.5vw;
         }
         input{
             background-color: $main_color;

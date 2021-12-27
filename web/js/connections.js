@@ -44,9 +44,10 @@ function update_status_span(span, status){
 //      CLASSES
 // ##################
 
-class NewConnectionWindow{
+// the window that pops up when the + button is pressed
+class AddConnectionWindow{
     constructor(){
-        this.window = document.getElementById("add_window")
+        this.window = document.getElementById("add_connection_window")
         this.hostname_input = document.getElementById("add_hostname")
         this.port_input = document.getElementById("add_port")
         this.name_input = document.getElementById("add_name") 
@@ -55,10 +56,10 @@ class NewConnectionWindow{
 
     display(){
         overlay_on();
+        this.window.style.display="grid";
         this.hostname_input.value = ""
         this.port_input.value = ""
         this.name_input.value = ""
-        this.window.style.display="grid";
     }
 
     async add_connection(){
@@ -318,14 +319,15 @@ class Selection{
     window.connections.selection =  new Selection("connections_selection");
     window.connections.req_selection = new Selection("requests_selection");
 
-    window.connections.new_conn_window = new NewConnectionWindow();
+    window.connections.add_conn_window = new AddConnectionWindow();
     window.connections.delete_conn_window = new DeleteConnWindow();
     
     for (const [uuid, conn] of Object.entries(window.data.connections)){
         window.connections.selection.add(uuid, new ConnectionRow(uuid))
     }
 
-    document.getElementById("new_connection").onclick = ()=> window.connections.new_conn_window.display()
+    // button gets pressed to add new connection
+    document.getElementById("new_connection").onclick = ()=> window.connections.add_conn_window.display()
 
     
     window.callbacks.status_change.add((uuid, status)=>{

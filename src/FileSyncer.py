@@ -25,7 +25,8 @@ class Conflict:
 # TODO: add encryption 
 # TODO: sync optimization; check if files have been moved/renamed etc
 # TODO: add timeout to recv. When timeout is hit, connection is marked as disconnected.
-
+# TODO: standardize codes/flags between web part and python backend part
+#? What to do if a directory is no longer being tracked but a sync still references it?
 
 class FileSyncer(Config):
     def __init__(self, config_path:Path):
@@ -163,6 +164,7 @@ class FileSyncer(Config):
     
     # directories 
     def add_directory(self, directory, name="", ignore_patterns=[]):
+        directory = Path(directory) # so string format is standardized (use // instead of / or \ )
         self.file_tracker.add_directory(directory, name, ignore_patterns)
         self.server.directory_locks[str(directory)] = Lock()
     
@@ -196,11 +198,11 @@ class FileSyncer(Config):
     def update_status_callback(self, uuid): 
         self.ui.notify(UI_Code.NOTF_UPDATE_STATUS, uuid, self.get_uuid_status(uuid)) 
     
-    def update_directory_graph_callback(self, directory): 
-        self.ui.notify(UI_Code.NOTF_UPDATE_DIR_GRAPH, directory, self.file_tracker[directory].to_dict())
-    
     def new_connection_callback(self, uuid): 
         self.ui.notify(UI_Code.NOTF_NEW_CONNECTION, uuid)
+        
+    def update_directory_graph_callback(self, directory): 
+        self.ui.notify(UI_Code.NOTF_UPDATE_DIR_GRAPH, directory, self.file_tracker[directory].to_dict())
         
     def new_directory_callback(self, dir_path):
         self.ui.notify(UI_Code.NOTF_NEW_DIRECTORY, dir_path)

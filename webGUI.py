@@ -1,5 +1,8 @@
 import eel
+from tkinter import Tk     # from tkinter import Tk for Python 3.x
+from tkinter.filedialog import askdirectory
 from src.ui import UiFrontend, UI_Code
+
 
 
 
@@ -25,12 +28,14 @@ def get_directories(): return webgui.request(UI_Code.REQ_DIRS)
 def get_dir_info(directory): return webgui.request(UI_Code.REQ_DIR_INFO, directory)
 @eel.expose
 def get_dir_graph(dir_path): return webgui.request(UI_Code.REQ_DIR_GRAPH, dir_path)
-
+@eel.expose
+def add_directory(dir_path, name, ign_patterns): webgui.request(UI_Code.ADD_DIR, dir_path, name, ign_patterns)
 
 @eel.expose
 def add_connection(hostname, port, name): return webgui.request(UI_Code.ADD_CONNECTION, hostname, port, name)
 @eel.expose
 def connect(uuid): return webgui.request(UI_Code.UUID_CONNECT, uuid)
+
 @eel.expose
 def disconnect(uuid): webgui.request(UI_Code.UUID_DISCONNECT, uuid)
 @eel.expose
@@ -45,6 +50,12 @@ def resolve_conflicts(uuid, local_dir, remote_dir, rel_path, is_dir, resolve_pol
 @eel.expose
 def sync(uuid, local, remote): webgui.request(UI_Code.UUID_SYNC, uuid, local, remote)
 
+
+@eel.expose
+def ask_dir_path():
+    Tk().withdraw() 
+    return askdirectory()
+    
 
 class WebGUI(UiFrontend):
     def __init__(self, port):

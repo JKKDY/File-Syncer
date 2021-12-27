@@ -201,8 +201,8 @@
 }
 
 #connections_selection .connections_header .circle_btn.plus {
-  height: 24px;
-  width: 24px;
+  height: 22px;
+  width: 22px;
   margin-left: 0px;
 }
 
@@ -437,7 +437,7 @@
   color: #00CD69;
 }
 
-#add_window {
+#add_connection_window {
   padding: 25px 50px;
   height: 250px;
   width: 350px;
@@ -446,14 +446,14 @@
       grid-template-rows: auto 1fr 40px;
 }
 
-#add_window .header {
+#add_connection_window .header {
   font-size: 24px;
   width: 100%;
   border-bottom: 3px solid #2F3247;
   padding-bottom: 15px;
 }
 
-#add_window form {
+#add_connection_window form {
   padding: 15px 0px;
   font-size: 16px;
   display: -ms-grid;
@@ -466,11 +466,11 @@
           align-items: center;
 }
 
-#add_window form label {
-  padding-right: 30px;
+#add_connection_window form label {
+  padding-right: 1.5vw;
 }
 
-#add_window form input {
+#add_connection_window form input {
   background-color: #2B2E43;
   font-size: 16px;
   -webkit-box-shadow: none;
@@ -482,11 +482,11 @@
   border-bottom: 2px solid #676978;
 }
 
-#add_window form input:focus {
+#add_connection_window form input:focus {
   outline: none !important;
 }
 
-#add_window button {
+#add_connection_window button {
   border-radius: 10px;
   background-color: #2F3247;
   color: #92949F;
@@ -497,7 +497,7 @@
   margin-left: 35%;
 }
 
-#add_window button:hover {
+#add_connection_window button:hover {
   border: 2px solid #00CD69;
   color: #00CD69;
   font-weight: 500;
@@ -1168,6 +1168,80 @@
   font-size: 20px;
   color: #03D19B;
   padding-right: 6px;
+}
+
+#add_directory_window {
+  padding: 25px 50px;
+  height: 250px;
+  width: 400px;
+  border-radius: 15px;
+  -ms-grid-rows: auto 1fr 40px;
+      grid-template-rows: auto 1fr 40px;
+}
+
+#add_directory_window .header {
+  font-size: 24px;
+  width: 100%;
+  border-bottom: 3px solid #2F3247;
+  padding-bottom: 15px;
+}
+
+#add_directory_window form {
+  padding: 15px 0px;
+  font-size: 16px;
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: min-content 1fr min-content;
+      grid-template-columns: -webkit-min-content 1fr -webkit-min-content;
+      grid-template-columns: min-content 1fr min-content;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+#add_directory_window form label {
+  padding-right: 20px;
+}
+
+#add_directory_window form input {
+  background-color: #2B2E43;
+  font-size: 16px;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+  border: none;
+  color: #92949F;
+  padding: 0;
+  margin-bottom: -2px;
+  border-bottom: 2px solid #676978;
+}
+
+#add_directory_window form input:focus {
+  outline: none !important;
+}
+
+#add_directory_window form i {
+  padding-left: 20px;
+}
+
+#add_directory_window form i:hover {
+  color: #00CD69;
+}
+
+#add_directory_window button {
+  border-radius: 10px;
+  background-color: #2F3247;
+  color: #92949F;
+  border: 1px solid #00CD69;
+  width: 30%;
+  -webkit-transition: all 0.1s ease 0s;
+  transition: all 0.1s ease 0s;
+  margin-left: 35%;
+}
+
+#add_directory_window button:hover {
+  border: 2px solid #00CD69;
+  color: #00CD69;
+  font-weight: 500;
 }
 
 body {

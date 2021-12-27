@@ -30,9 +30,9 @@ if __name__ == '__main__':
     reset_syncer()
     reset_dirs()
     p1 = Process(target=syncer1, args=())
-    p2 = Process(target=syncer2, args=())
+    #p2 = Process(target=syncer2, args=())
     p1.start()
-    p2.start()
+    #p2.start()
 
     p1.join()
-    p2.join()
+    #p2.join()

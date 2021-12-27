@@ -1,5 +1,33 @@
 
 
+
+class AddDirectoryWindow{
+    constructor(){
+        this.window = document.getElementById("add_directory_window")
+        this.dir_select_btn = document.getElementById("dir_select_btn")
+        this.dir_input = document.getElementById("add_dir_path")
+        this.name_input = document.getElementById("add_dir_name")
+        this.dir_select_btn.onclick = async () => {
+            console.log("jsdfkjsdfn")
+            this.dir_input.value = await eel.ask_dir_path()()
+            console.log(this.dir_input.value)
+        }
+        document.getElementById("add_directory_btn").onclick = ()=>{
+            let path = this.dir_input.value
+            let name = this.name_input.value
+            eel.add_directory(path, name, [])
+            overlay_off()
+        }
+    }
+
+    display(){
+        overlay_on();
+        this.window.style.display="grid";
+        this.dir_input.value = ""
+        this.name_input.value = ""
+    }
+}
+
 class DirectorySelection{
     constructor(){
         this.list = document.getElementById("dir_list")
@@ -77,10 +105,14 @@ class DirectoryInfo{
     window.directories = {};
     window.directories.info_display = new DirectoryInfo();
     window.directories.selection = new DirectorySelection();
+    window.add_dir_window = new AddDirectoryWindow();
+
    
     for (const [dir_path, dir] of Object.entries(window.data.directories)){
         window.directories.selection.add_dir(dir_path)
     }
+
+    document.getElementById("new_directory").onclick = ()=>window.add_dir_window.display();
 
     window.callbacks.directory_graph_update.add((directory)=>{
         if (window.directories.selection.active === directory){
