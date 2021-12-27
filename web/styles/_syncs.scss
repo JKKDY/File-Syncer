@@ -387,4 +387,77 @@
 
 
 
+#add_sync_window{
+    padding: 25px 50px;
+    height: 250px;
+    width: 450px;
+    border-radius:  15px;
+    grid-template-rows: auto 1fr 40px;
+
+    .header{
+        font-size: 24px;
+        width: 100%;
+        border-bottom: 3px solid $secondary_color;
+        padding-bottom: 15px;
+    }
+
+    form{
+        padding: 15px 0px;
+        font-size: 16px;
+        display: grid;
+        grid-template-columns: min-content 1fr;
+        align-items: center;
+        label{
+            padding-right: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        // input{
+        //     background-color: $main_color;
+        //     font-size: 16px;
+        //     box-shadow: none;
+        //     border: none;
+        //     color: $font_color2;
+        //     padding: 0;
+        //     margin-bottom: -2px;
+        //     border-bottom: 2px solid $font_color3;
+        // }
+        select{
+            background-color: $main_color;
+            font-size: 16px;
+            box-shadow: none;
+            border: none;
+            color: $font_color2;
+            border-bottom: 2px solid $font_color3;
+
+        }
+
+        select:focus{
+            outline: none !important;
+        }
+        i{
+            padding-left: 20px;
+            &:hover{color: $accent_color1;}
+        }
+    }
+
+    button{
+        border-radius: 10px;
+        background-color: $secondary_color;
+        color: $font_color2;
+        border: 1px solid $accent_color1;
+        width: 30%;
+        transition: all 0.1s ease 0s;
+        margin-left: 50% - 15%;
+        &:hover{
+            border: 2px solid $accent_color1;
+            color: $accent_color1;
+            font-weight: 500;
+        }
+    }
+}
+
+
+
 

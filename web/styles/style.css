@@ -939,6 +939,81 @@
   background-color: #33364b;
 }
 
+#add_sync_window {
+  padding: 25px 50px;
+  height: 250px;
+  width: 450px;
+  border-radius: 15px;
+  -ms-grid-rows: auto 1fr 40px;
+      grid-template-rows: auto 1fr 40px;
+}
+
+#add_sync_window .header {
+  font-size: 24px;
+  width: 100%;
+  border-bottom: 3px solid #2F3247;
+  padding-bottom: 15px;
+}
+
+#add_sync_window form {
+  padding: 15px 0px;
+  font-size: 16px;
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: min-content 1fr;
+      grid-template-columns: -webkit-min-content 1fr;
+      grid-template-columns: min-content 1fr;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+#add_sync_window form label {
+  padding-right: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#add_sync_window form select {
+  background-color: #2B2E43;
+  font-size: 16px;
+  -webkit-box-shadow: none;
+          box-shadow: none;
+  border: none;
+  color: #92949F;
+  border-bottom: 2px solid #676978;
+}
+
+#add_sync_window form select:focus {
+  outline: none !important;
+}
+
+#add_sync_window form i {
+  padding-left: 20px;
+}
+
+#add_sync_window form i:hover {
+  color: #00CD69;
+}
+
+#add_sync_window button {
+  border-radius: 10px;
+  background-color: #2F3247;
+  color: #92949F;
+  border: 1px solid #00CD69;
+  width: 30%;
+  -webkit-transition: all 0.1s ease 0s;
+  transition: all 0.1s ease 0s;
+  margin-left: 35%;
+}
+
+#add_sync_window button:hover {
+  border: 2px solid #00CD69;
+  color: #00CD69;
+  font-weight: 500;
+}
+
 #Directories {
   display: -ms-grid;
   display: grid;

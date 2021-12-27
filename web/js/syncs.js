@@ -1,10 +1,60 @@
 
 
 
+
+class AddSyncWindow{
+    constructor(){
+        this.window = document.getElementById("add_sync_window")
+        this.local_dir_option = document.getElementById("add_sync_local_dir")
+        this.remote_dir_option = document.getElementById("add_sync_remote_dir")
+        document.getElementById("add_sync_btn").onclick = ()=>{
+            console.log(this.local_dir_option.value)
+            eel.add_Sync(window.syncs.conn_selection.active.uuid, 
+                this.local_dir_option.value,
+                "some_dir",
+                [],[],
+                0, 0, -1, true
+                //this.remote_dir_option.value
+                )()
+            overlay_off()
+        }
+    }
+
+    display(){
+        this.local_dir_option.innerHTML = ""
+        this.remote_dir_option.innerHTML = ""
+
+        let active = window.syncs.conn_selection.active
+        if (active !== undefined){
+            let uuid = active.uuid
+
+            for (const [path, dir] of Object.entries(window.data.connections[uuid].directories)){
+                let option = document.createElement("option")
+                option.value = path
+                this.remote_dir_option.appendChild(option)
+            }
+
+            for (const [path, dir] of Object.entries(window.data.directories)){
+                let option = document.createElement("option")
+                option.innerText = path
+                this.local_dir_option.appendChild(option)
+            }
+
+            overlay_on()
+            this.window.style.display = "grid";
+        }
+
+    }
+}
+
+
+
+
+
 // ######################
 //  CONNECTION SELECTION
 // ######################
-// list of connections, located on the left side
+// list of connections. located on the left side
 class ConnectionSelection{
     constructor(){
         this.sync_container = document.getElementById("sync_list_container")
@@ -21,6 +71,7 @@ class ConnectionSelection{
         connection.div.onclick = ()=>{
             if (this.active) this.active.classList.remove("active");
             this.active = connection.div;
+            this.active.uuid = uuid
             this.active.classList.add("active");
             this.sync_container.innerHTML = "";
             this.sync_container.appendChild(window.syncs.sync_selections[connection.uuid].list_div);
@@ -156,7 +207,7 @@ function get_remote_name(remote){
 // ######################
 //   PROPERTIES DISPLAY
 // ######################
-// sync properties of selected sync, located at bottom RHS
+// sync properties of selected sync, located at bottom right side
 class PropertiesDisplay{
     constructor(){
         this.container = document.getElementById("props_container");
@@ -395,6 +446,9 @@ class ConflictsInfo extends Container{
     window.syncs.list = document.getElementById("sync_list");
     window.syncs.sync_selections = {};
     window.syncs.properties_display = new PropertiesDisplay();
+    window.add_sync_window = new AddSyncWindow();
+
+    document.getElementById("new_sync").onclick = () => window.add_sync_window.display();
 
     for (const [uuid, conn] of Object.entries(window.data.connections)){
         window.syncs.conn_selection.add(uuid, conn);
@@ -441,7 +495,7 @@ class ConflictsInfo extends Container{
     })
 
     window.callbacks.delete_conflict.add((uuid, local, remote, path, is_dir) => {
-
+        // TODO: resolve conflicts over UI
     })
 })();
 

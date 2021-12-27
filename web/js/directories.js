@@ -107,12 +107,11 @@ class DirectoryInfo{
     window.directories.selection = new DirectorySelection();
     window.add_dir_window = new AddDirectoryWindow();
 
+    document.getElementById("new_directory").onclick = ()=>window.add_dir_window.display();
    
     for (const [dir_path, dir] of Object.entries(window.data.directories)){
         window.directories.selection.add_dir(dir_path)
     }
-
-    document.getElementById("new_directory").onclick = ()=>window.add_dir_window.display();
 
     window.callbacks.directory_graph_update.add((directory)=>{
         if (window.directories.selection.active === directory){

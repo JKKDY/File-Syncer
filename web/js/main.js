@@ -378,12 +378,13 @@ class Callback{
 
     // load data
     try {
-        for (const uuid of await eel.get_uuids()()) await new_conn(uuid)
-        for (const path of await eel.get_directories()()) await new_dir(path)
-        for (const [uuid, conn] of Object.entries(window.data.connections)) {
-            for (const [local, remotes] of Object.entries(conn.syncs)){
-                for (const [remote, sync] of Object.entries(remotes)){
-                    let [files, folders] = await eel.get_conflicts(uuid, local, remote)()
+        for (const uuid of await eel.get_uuids()()) await new_conn(uuid)    // create new connection entries
+        for (const path of await eel.get_directories()()) await new_dir(path)   // create new directory entries
+        
+        for (const [uuid, conn] of Object.entries(window.data.connections)) {   // for every connection
+            for (const [local, remotes] of Object.entries(conn.syncs)){     // for every sync
+                for (const [remote, sync] of Object.entries(remotes)){      // load conflicts
+                    let [files, folders] = await eel.get_conflicts(uuid, local, remote)() 
                     for (const [file, conflict] of Object.entries(files)) add_conflict(uuid, local, remote, file, false, conflict)
                     for (const [folder, conflict] of Object.entries(folders)) add_conflict(uuid, local, remote, folder, true, conflict)
                 }

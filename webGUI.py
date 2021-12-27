@@ -35,9 +35,9 @@ def add_directory(dir_path, name, ign_patterns): webgui.request(UI_Code.ADD_DIR,
 def add_connection(hostname, port, name): return webgui.request(UI_Code.ADD_CONNECTION, hostname, port, name)
 @eel.expose
 def connect(uuid): return webgui.request(UI_Code.UUID_CONNECT, uuid)
-
 @eel.expose
 def disconnect(uuid): webgui.request(UI_Code.UUID_DISCONNECT, uuid)
+
 @eel.expose
 def get_conflicts(uuid, local, remote): 
     files, folders =  webgui.request(UI_Code.UUID_REQ_CONFLICTS, uuid, local, remote)
@@ -47,6 +47,10 @@ def get_conflicts(uuid, local, remote):
 @eel.expose
 def resolve_conflicts(uuid, local_dir, remote_dir, rel_path, is_dir, resolve_policy): 
     webgui.request(UI_Code.UUID_RESOLVE_CONFLICT, uuid, local_dir, remote_dir, rel_path, is_dir, resolve_policy)
+
+@eel.expose
+def add_Sync(uuid, local, remote, loc_ign, sync_ign, policy, default, auto_sync, bidirectional):
+    webgui.request(UI_Code.UUID_ADD_SYNC, uuid, local, remote)
 @eel.expose
 def sync(uuid, local, remote): webgui.request(UI_Code.UUID_SYNC, uuid, local, remote)
 
