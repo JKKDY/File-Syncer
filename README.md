@@ -17,8 +17,9 @@ An example image of the syncing page. The left side holds all the known devices,
 ![image](https://github.com/user-attachments/assets/6ed32478-9eac-497d-b3b7-782cd6ac4ec2)
 
 <br>
+
 Example image showcasing the directory overview. This is intended to showcase information about each file, which ones are being tracked, which ones are ignored, if the file has been modified etc 
-![image](https://github.com/user-attachments/assets/1898d6e8-572e-4871-824d-d224d5bc1c55)
+![image](https://github.com/user-attachments/assets/cac641c3-a107-462d-b4dc-928767f0ee0b)
 
 
 # History, Current State, Missing Features
